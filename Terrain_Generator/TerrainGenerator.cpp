@@ -5,8 +5,56 @@
 TerrainGenerator::TerrainGenerator(void)
 {
 	srand(time(NULL)); // set random number generator seed
-	this->displacement = 0.1; // amount to increment or decrement a height
-	this->faultIterations = 560;
+	this->displacement = 0.01; // amount to increment or decrement a height
+	this->faultIterations = 400;
+	this->firstLoad = false;
+}
+
+void TerrainGenerator::drawScene(void)
+{
+	glPushMatrix();
+	glTranslatef(-(this->terrainSize/2), -this->terrainSize/2, 0);
+	float height;
+	//glutSolidTeapot(1);
+	
+	//glVertex3f(0, 0, 0); glVertex3f(0, 1, 0); glVertex3f(1, 0, 0); glVertex3f(1, 1, 0);
+	for (int i = 0; i < this->terrainSize; i++)
+	{
+		for (int j = 0; j < this->terrainSize; j ++)
+		{
+			if (i+1 < this->terrainSize && j+1 < this->terrainSize)
+				drawQuad(i, j);
+		}
+		
+		
+		
+	}
+	firstLoad = true;
+	glPopMatrix();
+}
+
+void TerrainGenerator::drawQuad(int i, int j)
+{
+	float multiplier = 30;
+	float height;
+	glBegin(GL_QUADS);
+	height = this->terrain[i][j];
+	glColor3f(height, height, height);
+	glVertex3f(i, height * multiplier, j);
+
+	height = this->terrain[i + 1][j];
+	glColor3f(height, height, height);
+	glVertex3f(i + 1, height * multiplier, j);
+
+	height = this->terrain[i][j + 1];
+	glColor3f(height, height, height);
+	glVertex3f(i, height * multiplier, j + 1);
+
+	height = this->terrain[i + 1][j + 1];
+	glColor3f(height, height, height);
+	glVertex3f(i + 1, height * multiplier, j + 1);
+	glEnd();
+
 }
 
 //setters
@@ -31,9 +79,8 @@ void TerrainGenerator::setupTerrain()
 	size = this->terrainSize;
 	d = sqrt(2 * (size*size));
 	
-	printf("v: %f, a: %f, b: %f, d: %f, c: %f\n", v, a, b, d, c);
 	int numUp = 0; int numDown = 0;
-	
+	cout << endl << "completion...";
 	for (int iterations = 0; iterations < this->faultIterations; iterations++)
 	{
 		v = rand();
@@ -58,8 +105,13 @@ void TerrainGenerator::setupTerrain()
 						this->terrain[i][j] -= this->displacement;
 				}
 			}
+			
 		}
+		
+		if (!firstLoad && iterations % 20 == 0)
+			 cout << (float)iterations / this->faultIterations * 100 << "%...";
 	}
+	//cout << "0,1" << terrain[0][1] << "2,3" << terrain[2][3];
 	cout << "\nNumUP:" << numUp << ", NumDown: " << numDown << endl;
 }
 //getters

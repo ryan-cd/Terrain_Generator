@@ -10,6 +10,7 @@ public:
 	//getters
 	vector<vector<float> > getTerrain();
 	void printTerrain(); //this will print the contents of the terrain array to the console
+	void drawScene(); //draws the terrain
 
 	//setters
 	void setSize(int terrainSize);
@@ -20,7 +21,11 @@ private:
 	int terrainSize;
 	float displacement;
 	int faultIterations;
-	vector<vector<float>> terrain; // the inner vector is the rows
+	vector<vector<float>> terrain; 
+	bool firstLoad;
+	//functions
+	void drawQuad(int i, int j);
+
 
 };
 
