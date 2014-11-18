@@ -5,7 +5,7 @@
 TerrainGenerator::TerrainGenerator(void)
 {
 	srand(time(NULL)); // set random number generator seed
-	this->displacement = 0.01; // amount to increment or decrement a height
+	this->displacement = 0.03;// 0.01; // amount to increment or decrement a height
 	this->faultIterations = 400;
 	this->firstLoad = false;
 }
@@ -46,13 +46,15 @@ void TerrainGenerator::drawQuad(int i, int j)
 	glColor3f(height, height, height);
 	glVertex3f(i + 1, height * multiplier, j);
 
+	height = this->terrain[i + 1][j + 1];
+	glColor3f(height, height, height);
+	glVertex3f(i + 1, height * multiplier, j + 1);
+	
 	height = this->terrain[i][j + 1];
 	glColor3f(height, height, height);
 	glVertex3f(i, height * multiplier, j + 1);
 
-	height = this->terrain[i + 1][j + 1];
-	glColor3f(height, height, height);
-	glVertex3f(i + 1, height * multiplier, j + 1);
+	
 	glEnd();
 
 }

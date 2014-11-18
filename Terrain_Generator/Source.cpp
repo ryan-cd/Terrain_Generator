@@ -3,7 +3,7 @@
 
 
 //Globals
-float gCamPos[] = { 0, 5, 200 };	//where the camera is
+float gCamPos[] = { 0, 2, 200 };	//where the camera is
 float gSceneRotation[3] = { 0, 0, 0 }; //the rotation of the scene
 
 //Class instantiations
@@ -47,14 +47,16 @@ void init(void)
 {
 	/* Setup GL features */
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE); //enable backface culling
+	glFrontFace(GL_CW);
+	
+	glEnable(GL_CULL_FACE); //enable backface culling
 
 	glClearColor(0, 0, 0, 0);
 	glColor3f(1, 1, 1);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(45, 1, 1, 200);
+	gluPerspective(45, 1, 1, 400);
 }
 
 /* callbacks start here */
