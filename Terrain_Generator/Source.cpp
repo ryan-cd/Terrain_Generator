@@ -3,8 +3,9 @@
 
 
 //Globals
-float gCamPos[] = { 0, 2, 200 };	//where the camera is
+float gCamPos[] = { 0, 20, 400 };	//where the camera is
 float gSceneRotation[3] = { 0, 0, 0 }; //the rotation of the scene
+int gMinTerrainSize = 50, gMaxTerrainSize = 300;
 
 //Class instantiations
 TerrainGenerator terrainGenerator;
@@ -14,9 +15,8 @@ void promptUser()
 {
 	int terrainSize = 0;
 	cout << "Welcome to Terrain Generator\n\n";
-	//UPDATE MIN SIZE TO 50
-	//}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
-	while (terrainSize < 50 || terrainSize > 300)
+	
+	while (terrainSize < gMinTerrainSize || terrainSize > gMaxTerrainSize)
 	{
 		cout << "Please enter a valid terrain size \nto generate (50-300) -> ";
 		cin >> terrainSize;
@@ -33,6 +33,16 @@ void keyboard(unsigned char key, int xIn, int yIn)
 {
 	switch (key)
 	{
+	case '_':
+		gCamPos[2] += 10;
+	case '-':
+		gCamPos[2] += 10;
+		break;
+	case '=':
+		gCamPos[2] -= 10;
+	case '+':
+		gCamPos[2] -= 10;
+		break;
 	case'p':
 		terrainGenerator.printTerrain();
 		break;
@@ -48,7 +58,6 @@ void init(void)
 	/* Setup GL features */
 	glEnable(GL_DEPTH_TEST);
 	glFrontFace(GL_CW);
-	
 	glEnable(GL_CULL_FACE); //enable backface culling
 
 	glClearColor(0, 0, 0, 0);
@@ -98,8 +107,13 @@ void display(void)
 	gluLookAt(gCamPos[0], gCamPos[1], gCamPos[2], 0, 0, 0, 0, 1, 0);
 	glPushMatrix(); // push scene rotation
 	//rotate the scene by the amount specified by the user
+	
+
 	glRotatef(gSceneRotation[0], 1, 0, 0);
 	glRotatef(gSceneRotation[1], 0, 1, 0);
+
+	if (terrainGenerator.getTerrainSize() > gMinTerrainSize && terrainGenerator.getTerrainSize() < gMaxTerrainSize)
+		glTranslatef(-terrainGenerator.getTerrainSize() / 2, 0, -terrainGenerator.getTerrainSize() / 2);
 
 	glColor3f(1, 1, 1);
 

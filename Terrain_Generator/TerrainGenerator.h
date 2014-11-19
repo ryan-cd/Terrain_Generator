@@ -9,13 +9,16 @@ public:
 	TerrainGenerator(void); //constructor
 	//getters
 	vector<vector<float> > getTerrain();
-	void printTerrain(); //this will print the contents of the terrain array to the console
-	void drawScene(); //draws the terrain
+	int getTerrainSize();
+	
 
 	//setters
 	void setSize(int terrainSize);
 	void setupTerrain();
 
+	//misc
+	void printTerrain(); //this will print the contents of the terrain array to the console
+	void drawScene(); //draws the terrain
 
 private:
 	int terrainSize;

@@ -5,15 +5,15 @@
 TerrainGenerator::TerrainGenerator(void)
 {
 	srand(time(NULL)); // set random number generator seed
-	this->displacement = 0.03;// 0.01; // amount to increment or decrement a height
-	this->faultIterations = 400;
+	this->displacement = 0.02;// 0.01; // amount to increment or decrement a height
+	this->faultIterations = 800;
 	this->firstLoad = false;
 }
 
 void TerrainGenerator::drawScene(void)
 {
-	glPushMatrix();
-	glTranslatef(-(this->terrainSize/2), -this->terrainSize/2, 0);
+	//glPushMatrix();
+	//glTranslatef(-(this->terrainSize/2), -this->terrainSize/2, 0);
 	float height;
 	//glutSolidTeapot(1);
 	
@@ -30,7 +30,7 @@ void TerrainGenerator::drawScene(void)
 		
 	}
 	firstLoad = true;
-	glPopMatrix();
+	//glPopMatrix();
 }
 
 void TerrainGenerator::drawQuad(int i, int j)
@@ -110,7 +110,7 @@ void TerrainGenerator::setupTerrain()
 			
 		}
 		
-		if (!firstLoad && iterations % 20 == 0)
+		if (!firstLoad && iterations % (this->faultIterations/10) == 0)
 			 cout << (float)iterations / this->faultIterations * 100 << "%...";
 	}
 	//cout << "0,1" << terrain[0][1] << "2,3" << terrain[2][3];
@@ -135,3 +135,7 @@ void TerrainGenerator::printTerrain()
 	}
 }
 
+int TerrainGenerator::getTerrainSize(void)
+{
+	return this->terrainSize;
+}
