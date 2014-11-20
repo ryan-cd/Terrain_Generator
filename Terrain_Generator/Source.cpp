@@ -3,9 +3,29 @@
 
 
 //Globals
-float gCamPos[] = { 0, 20, 400 };	//where the camera is
+
+
+float gCamPos[] = { 0, 50, 400 };	//where the camera is
+
 float gSceneRotation[3] = { 0, 0, 0 }; //the rotation of the scene
+float gMinSceneRotationX = 0, gMaxSceneRotationX = 90;
 int gMinTerrainSize = 50, gMaxTerrainSize = 300;
+unsigned int gDrawMode = 0;
+
+int gWindowSizeX = 800, gWindowSizeY = 800;
+int gWindow2SizeX = gMaxTerrainSize, gWindow2SizeY = gMaxTerrainSize;
+
+//lighting
+float light_pos[] = { 0, 50, 400, 1.0 };
+
+float amb0[4] = { 1, 1, 1, 1 };
+float diff0[4] = { 1, 1, 1, 1 };
+float spec0[4] = { 1, 1, 1, 1 };
+
+float m_amb[] = { 0.1, 0.1, 0.1, 1.0 };
+float m_diff[] = { 1, 1, 1, 1.0 };
+float m_spec[] = { 1, 1, 1, 1.0 };
+float shiny = 0.8f;
 
 //Class instantiations
 TerrainGenerator terrainGenerator;
@@ -43,8 +63,30 @@ void keyboard(unsigned char key, int xIn, int yIn)
 	case '+':
 		gCamPos[2] -= 10;
 		break;
-	case'p':
-		terrainGenerator.printTerrain();
+	case 'w':
+		gDrawMode++;
+		if (gDrawMode > 2)
+			gDrawMode = 0;
+
+		switch (gDrawMode)
+		{
+		case 0:
+			cout << "solid";
+			terrainGenerator.setFillMode(TerrainGenerator::SOLID);
+			break;
+		case 1:
+			cout << "wireframe";
+			terrainGenerator.setFillMode(TerrainGenerator::WIREFRAME);
+			break;
+		case 2:
+			cout << "combo";
+			terrainGenerator.setFillMode(TerrainGenerator::COMBINATION);
+			break;
+		}
+		
+		break;
+	case 'r':
+		terrainGenerator.reset();
 		break;
 	case 'q':
 	case 27:	//27 is the esc key
@@ -84,11 +126,13 @@ void special(int key, int x, int y)
 		break;
 
 	case GLUT_KEY_UP:
-		gSceneRotation[0] += 1;
+		if (gSceneRotation[0] < gMaxSceneRotationX)
+			gSceneRotation[0] += 1;
 		break;
 
 	case GLUT_KEY_DOWN:
-		gSceneRotation[0] -= 1;
+		if (gSceneRotation[0] > gMinSceneRotationX)
+			gSceneRotation[0] -= 1;
 		break;
 	}
 	glutPostRedisplay();
@@ -103,6 +147,7 @@ void display(void)
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
 	gluLookAt(gCamPos[0], gCamPos[1], gCamPos[2], 0, 0, 0, 0, 1, 0);
 	glPushMatrix(); // push scene rotation
@@ -136,10 +181,24 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);		//starts up GLUT
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
-	glutInitWindowSize(800, 800);
+	glutInitWindowSize(gWindowSizeX, gWindowSizeY);
 	glutInitWindowPosition(350, 50);
 	
 	glutCreateWindow("Terain Generator");	//creates the window
+	//glutCreateSubWindow(2, gWindowSizeX, gWindowSizeY, gWindow2SizeX, gWindow2SizeY);
+	//glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, amb0);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diff0);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, spec0);
+
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, m_amb);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, m_diff);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, m_spec);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shiny);
 
 	glutDisplayFunc(display);	//registers "display" as the display callback function
 	glutKeyboardFunc(keyboard);

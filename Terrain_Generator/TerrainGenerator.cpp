@@ -5,19 +5,15 @@
 TerrainGenerator::TerrainGenerator(void)
 {
 	srand(time(NULL)); // set random number generator seed
-	this->displacement = 0.02;// 0.01; // amount to increment or decrement a height
+	this->displacement = 0.02; // amount to increment or decrement a height
 	this->faultIterations = 800;
 	this->firstLoad = false;
+	this->fillMode = SOLID;
 }
 
 void TerrainGenerator::drawScene(void)
 {
-	//glPushMatrix();
-	//glTranslatef(-(this->terrainSize/2), -this->terrainSize/2, 0);
 	float height;
-	//glutSolidTeapot(1);
-	
-	//glVertex3f(0, 0, 0); glVertex3f(0, 1, 0); glVertex3f(1, 0, 0); glVertex3f(1, 1, 0);
 	for (int i = 0; i < this->terrainSize; i++)
 	{
 		for (int j = 0; j < this->terrainSize; j ++)
@@ -30,33 +26,60 @@ void TerrainGenerator::drawScene(void)
 		
 	}
 	firstLoad = true;
-	//glPopMatrix();
 }
 
 void TerrainGenerator::drawQuad(int i, int j)
 {
-	float multiplier = 30;
-	float height;
-	glBegin(GL_QUADS);
-	height = this->terrain[i][j];
-	glColor3f(height, height, height);
-	glVertex3f(i, height * multiplier, j);
+	float multiplier = 30; //multiplier to affect the height value
+	float height = 0; //the height of the current vertex
+	int iterations = 1; //if the fill mode is combination
 
-	height = this->terrain[i + 1][j];
-	glColor3f(height, height, height);
-	glVertex3f(i + 1, height * multiplier, j);
-
-	height = this->terrain[i + 1][j + 1];
-	glColor3f(height, height, height);
-	glVertex3f(i + 1, height * multiplier, j + 1);
+	if (this->fillMode == SOLID) 
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		iterations = 1;
+	}
+	else if (this->fillMode == WIREFRAME)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		iterations = 1;
+	}
+	else if (this->fillMode == COMBINATION)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		iterations = 2;
+	}
 	
-	height = this->terrain[i][j + 1];
-	glColor3f(height, height, height);
-	glVertex3f(i, height * multiplier, j + 1);
 
-	
-	glEnd();
+	for (int z = 0; z < iterations; z++)
+	{
+		
+		glBegin(GL_QUADS);
+		height = this->terrain[i][j];
+		glColor3f(height, height, height);
+		glVertex3f(i, height * multiplier, j);
 
+		height = this->terrain[i + 1][j];
+		glColor3f(height, height, height);
+		glVertex3f(i + 1, height * multiplier, j);
+
+		height = this->terrain[i + 1][j + 1];
+		glColor3f(height, height, height);
+		glVertex3f(i + 1, height * multiplier, j + 1);
+
+		height = this->terrain[i][j + 1];
+		glColor3f(height, height, height);
+		glVertex3f(i, height * multiplier, j + 1);
+
+
+		glEnd();
+
+		//this will only be reached if the mode is combo
+		if (z == 1)
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+	}
 }
 
 //setters
@@ -116,6 +139,14 @@ void TerrainGenerator::setupTerrain()
 	//cout << "0,1" << terrain[0][1] << "2,3" << terrain[2][3];
 	cout << "\nNumUP:" << numUp << ", NumDown: " << numDown << endl;
 }
+
+void TerrainGenerator::setFillMode(FillMode newMode)
+{
+	this->fillMode = newMode;
+}
+
+
+
 //getters
 vector<vector<float> > TerrainGenerator::getTerrain()
 {
@@ -138,4 +169,10 @@ void TerrainGenerator::printTerrain()
 int TerrainGenerator::getTerrainSize(void)
 {
 	return this->terrainSize;
+}
+
+void TerrainGenerator::reset(void)
+{
+	this->firstLoad = false;
+	setupTerrain();
 }
