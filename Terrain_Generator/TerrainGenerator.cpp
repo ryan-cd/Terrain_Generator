@@ -53,32 +53,45 @@ void TerrainGenerator::drawQuad(int i, int j)
 
 	for (int z = 0; z < iterations; z++)
 	{
-		
-		glBegin(GL_QUADS);
-		height = this->terrain[i][j];
-		glColor3f(height, height, height);
-		glVertex3f(i, height * multiplier, j);
-
-		height = this->terrain[i + 1][j];
-		glColor3f(height, height, height);
-		glVertex3f(i + 1, height * multiplier, j);
-
-		height = this->terrain[i + 1][j + 1];
-		glColor3f(height, height, height);
-		glVertex3f(i + 1, height * multiplier, j + 1);
-
-		height = this->terrain[i][j + 1];
-		glColor3f(height, height, height);
-		glVertex3f(i, height * multiplier, j + 1);
-
-
-		glEnd();
-
 		//this will only be reached if the mode is combo
 		if (z == 1)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
+		
+		glBegin(GL_QUADS);
+		height = this->terrain[i][j];
+		if (z==0)
+			glColor3f(height, height, height);
+		else
+			glColor3f(1-height, 1-height, 1-height);
+		glVertex3f(i, height * multiplier, j);
+
+		height = this->terrain[i + 1][j];
+		if (z == 0)
+			glColor3f(height, height, height);
+		else
+			glColor3f(1 - height, 1 - height, 1 - height);
+		glVertex3f(i + 1, height * multiplier, j);
+
+		height = this->terrain[i + 1][j + 1];
+		if (z == 0)
+			glColor3f(height, height, height);
+		else
+			glColor3f(1 - height, 1 - height, 1 - height);
+		glVertex3f(i + 1, height * multiplier, j + 1);
+
+		height = this->terrain[i][j + 1];
+		if (z == 0)
+			glColor3f(height, height, height);
+		else
+			glColor3f(1 - height, 1 - height, 1 - height);
+		glVertex3f(i, height * multiplier, j + 1);
+
+
+		glEnd();
+
+		
 	}
 }
 

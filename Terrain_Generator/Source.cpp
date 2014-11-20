@@ -12,11 +12,13 @@ float gMinSceneRotationX = 0, gMaxSceneRotationX = 90;
 int gMinTerrainSize = 50, gMaxTerrainSize = 300;
 unsigned int gDrawMode = 0;
 
+int gWindowPositionX = 350, gWindowPositionY = 50;
 int gWindowSizeX = 800, gWindowSizeY = 800;
 int gWindow2SizeX = gMaxTerrainSize, gWindow2SizeY = gMaxTerrainSize;
+int gWindow1 = 0, gWindow2 = 0; //specifies which window to work with
 
 //lighting
-float light_pos[] = { 0, 50, 400, 1.0 };
+float light_pos[] = { 0, 5, 0, 1.0 };
 
 float amb0[4] = { 1, 1, 1, 1 };
 float diff0[4] = { 1, 1, 1, 1 };
@@ -141,7 +143,7 @@ void special(int key, int x, int y)
 /* display function - GLUT display callback function
 *		clears the screen, sets the camera position, draws the ground plane and movable box
 */
-void display(void)
+void display1(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -164,12 +166,42 @@ void display(void)
 
 	terrainGenerator.drawScene();
 
-	//flush out to single buffer
+	
+	glutSwapBuffers();
+}
+
+void display2(void)
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glPushMatrix();
+	
+	glScalef(-1, 1, -1);
+	glTranslatef(1, -1, 0);
+
+	gluLookAt(0, 0, -1, 0, 0, 0, 0, 1, 0);
+	glBegin(GL_POLYGON);
+	glColor3f(0, 0, 1);
+	glVertex3f(0, 0, 0);
+	glColor3f(0, 1, 1);
+	glVertex3f(0, 1, 0);
+	glColor3f(1, 0, 1);
+	glVertex3f(1, 1, 0);
+	glColor3f(1, 1, 1);
+	glVertex3f(1, 0, 0);
+	glEnd();
+	glPopMatrix();
+	
 	glutSwapBuffers();
 }
 
 void idle(void)
 {
+	glutSetWindow(gWindow1);
+	glutPostRedisplay();
+	glutSetWindow(gWindow2);
 	glutPostRedisplay();
 }
 
@@ -182,10 +214,10 @@ int main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
 	glutInitWindowSize(gWindowSizeX, gWindowSizeY);
-	glutInitWindowPosition(350, 50);
+	glutInitWindowPosition(gWindowPositionX, gWindowPositionY);
 	
-	glutCreateWindow("Terain Generator");	//creates the window
-	//glutCreateSubWindow(2, gWindowSizeX, gWindowSizeY, gWindow2SizeX, gWindow2SizeY);
+	gWindow1 = glutCreateWindow("Terain Generator");	//creates the window
+	
 	//glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
@@ -200,15 +232,20 @@ int main(int argc, char** argv)
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, m_spec);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shiny);
 
-	glutDisplayFunc(display);	//registers "display" as the display callback function
+	glutDisplayFunc(display1);	//registers "display" as the display callback function
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(special);
 	glutIdleFunc(idle);
 
 	init();
 
+	glutInitWindowSize(gWindow2SizeX, gWindow2SizeY);
+	glutInitWindowPosition(gWindowSizeX + gWindowPositionX, gWindowPositionY);
+	gWindow2 = glutCreateWindow("Height Map");
+	glutDisplayFunc(display2);
+	glutIdleFunc(idle);
 	
-	//cin >> gCamPos[0];
+
 	glutMainLoop();				//starts the event glutMainLoop
 
 	
