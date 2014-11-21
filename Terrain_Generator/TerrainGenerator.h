@@ -23,6 +23,7 @@ public:
 	//misc
 	void printTerrain(); //this will print the contents of the terrain array to the console
 	void drawScene(); //draws the terrain
+	void drawHeightMap(); //draws the heightmap
 	void reset(); //will make a new terrain
 
 private:

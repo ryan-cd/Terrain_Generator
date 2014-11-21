@@ -11,6 +11,7 @@ float gSceneRotation[3] = { 0, 0, 0 }; //the rotation of the scene
 float gMinSceneRotationX = 0, gMaxSceneRotationX = 90;
 int gMinTerrainSize = 50, gMaxTerrainSize = 300;
 unsigned int gDrawMode = 0;
+bool gHeightmapDrawn = false; //whether the heightmap has been drawn already
 
 int gWindowPositionX = 350, gWindowPositionY = 50;
 int gWindowSizeX = 800, gWindowSizeY = 800;
@@ -36,6 +37,7 @@ TerrainGenerator terrainGenerator;
 void promptUser()
 {
 	int terrainSize = 0;
+	
 	cout << "Welcome to Terrain Generator\n\n";
 	
 	while (terrainSize < gMinTerrainSize || terrainSize > gMaxTerrainSize)
@@ -43,7 +45,6 @@ void promptUser()
 		cout << "Please enter a valid terrain size \nto generate (50-300) -> ";
 		cin >> terrainSize;
 	}
-	cout << "\nWorking...";
 	terrainGenerator.setSize(terrainSize);
 	terrainGenerator.setupTerrain();
 	
@@ -89,6 +90,7 @@ void keyboard(unsigned char key, int xIn, int yIn)
 		break;
 	case 'r':
 		terrainGenerator.reset();
+		gHeightmapDrawn = false;
 		break;
 	case 'q':
 	case 27:	//27 is the esc key
@@ -162,7 +164,7 @@ void display1(void)
 	if (terrainGenerator.getTerrainSize() > gMinTerrainSize && terrainGenerator.getTerrainSize() < gMaxTerrainSize)
 		glTranslatef(-terrainGenerator.getTerrainSize() / 2, 0, -terrainGenerator.getTerrainSize() / 2);
 
-	glColor3f(1, 1, 1);
+	
 
 	terrainGenerator.drawScene();
 
@@ -172,29 +174,52 @@ void display1(void)
 
 void display2(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	if (!gHeightmapDrawn)
+	{
+		glClear(GL_COLOR_BUFFER_BIT);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glPushMatrix();
 	
-	glScalef(-1, 1, -1);
-	glTranslatef(1, -1, 0);
+		glScalef(-1, -1, -1);
+		glTranslatef(1, -1, 0);
 
-	gluLookAt(0, 0, -1, 0, 0, 0, 0, 1, 0);
-	glBegin(GL_POLYGON);
-	glColor3f(0, 0, 1);
-	glVertex3f(0, 0, 0);
-	glColor3f(0, 1, 1);
-	glVertex3f(0, 1, 0);
-	glColor3f(1, 0, 1);
-	glVertex3f(1, 1, 0);
-	glColor3f(1, 1, 1);
-	glVertex3f(1, 0, 0);
-	glEnd();
-	glPopMatrix();
+		gluLookAt(0, 0, -1, 0, 0, 0, 0, 1, 0);
+		/*glBegin(GL_POLYGON);
+		glColor3f(0, 0, 1);
+		glVertex3f(0, 0, 0);
+		glColor3f(1, 1, 1);
+		glVertex3f(0, 2, 0);
+		glColor3f(1, 0, 1);
+		glVertex3f(2, 2, 0);
+		glColor3f(1, 1, 0);
+		glVertex3f(2, 0, 0);
+		glEnd();*/
 	
-	glutSwapBuffers();
+		/*glBegin(GL_POINTS);
+		for (int i = 0; i < terrainGenerator.getTerrainSize(); i++)
+		{
+			for (int j = 0; j < terrainGenerator.getTerrainSize(); j++)
+			{
+				//cout << terrainGenerator.getTerrain()[i][j] <<"\n";
+				//cout << i / terrainGenerator.getTerrainSize() << j / terrainGenerator.getTerrainSize() <<"\n";
+				glColor3f(terrainGenerator.getTerrain()[i][j], terrainGenerator.getTerrain()[i][j], terrainGenerator.getTerrain()[i][j]);
+				glVertex3f((float)i / terrainGenerator.getTerrainSize(), (float)j / terrainGenerator.getTerrainSize(), 0);
+			
+			
+			}
+			cout << (float)i / terrainGenerator.getTerrainSize() << "%done...";
+		}
+		glEnd();*/
+	
+		terrainGenerator.drawHeightMap();
+		
+		glPopMatrix();
+	
+		glutSwapBuffers();
+		gHeightmapDrawn = true;
+	}
 }
 
 void idle(void)

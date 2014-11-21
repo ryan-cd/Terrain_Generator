@@ -28,6 +28,22 @@ void TerrainGenerator::drawScene(void)
 	firstLoad = true;
 }
 
+void TerrainGenerator::drawHeightMap(void)
+{
+	cout << "\nDrawing Heightmap...";
+	glBegin(GL_POINTS);
+	for (int i = 0; i < this->terrainSize; i++)
+	{
+		for (int j = 0; j < this->terrainSize; j++)
+		{
+			glColor3f(this->terrain[i][j], this->terrain[i][j], this->terrain[i][j]);
+			//the index is scaled to fit into the window
+			glVertex3f((float)i / this->terrainSize*2, (float)j / this->terrainSize*2, 0);
+		}
+	}
+	glEnd();
+}
+
 void TerrainGenerator::drawQuad(int i, int j)
 {
 	float multiplier = 30; //multiplier to affect the height value
