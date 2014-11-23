@@ -5,15 +5,19 @@
 TerrainGenerator::TerrainGenerator(void)
 {
 	srand(time(NULL)); // set random number generator seed
+	//NOTE: min and max height must not change from 0 or 1. 
+	this->minHeight = 0;
+	this->maxHeight = 1;
 	this->displacement = 0.02; // amount to increment or decrement a height
 	this->faultIterations = 800;
 	this->firstLoad = false;
 	this->fillMode = SOLID;
+	this->colorMode = COLOR;
 }
 
 void TerrainGenerator::drawScene(void)
 {
-	float height;
+	//float height;
 	for (int i = 0; i < this->terrainSize; i++)
 	{
 		for (int j = 0; j < this->terrainSize; j ++)
@@ -36,7 +40,8 @@ void TerrainGenerator::drawHeightMap(void)
 	{
 		for (int j = 0; j < this->terrainSize; j++)
 		{
-			glColor3f(this->terrain[i][j], this->terrain[i][j], this->terrain[i][j]);
+			//glColor3f(this->terrain[i][j], this->terrain[i][j], this->terrain[i][j]);
+			setVertexColor(this->terrain[i][j]);
 			//the index is scaled to fit into the window
 			glVertex3f((float)i / this->terrainSize*2, (float)j / this->terrainSize*2, 0);
 		}
@@ -77,37 +82,80 @@ void TerrainGenerator::drawQuad(int i, int j)
 		
 		glBegin(GL_QUADS);
 		height = this->terrain[i][j];
-		if (z==0)
-			glColor3f(height, height, height);
+		if (z == 0)
+			setVertexColor(height); //set the glColor. This requires math for the COLOR mode
 		else
 			glColor3f(1-height, 1-height, 1-height);
 		glVertex3f(i, height * multiplier, j);
 
 		height = this->terrain[i + 1][j];
 		if (z == 0)
-			glColor3f(height, height, height);
+			setVertexColor(height); 
 		else
 			glColor3f(1 - height, 1 - height, 1 - height);
 		glVertex3f(i + 1, height * multiplier, j);
 
 		height = this->terrain[i + 1][j + 1];
 		if (z == 0)
-			glColor3f(height, height, height);
+			setVertexColor(height); 
 		else
 			glColor3f(1 - height, 1 - height, 1 - height);
 		glVertex3f(i + 1, height * multiplier, j + 1);
 
 		height = this->terrain[i][j + 1];
 		if (z == 0)
-			glColor3f(height, height, height);
+			setVertexColor(height); 
 		else
 			glColor3f(1 - height, 1 - height, 1 - height);
 		glVertex3f(i, height * multiplier, j + 1);
 
 
 		glEnd();
+	}
+}
 
-		
+/* Private function 
+Sets the GLColor call*/
+void TerrainGenerator::setVertexColor(float height)
+{
+	float color[3] = { 0, 0, 0 }; // the color to set the vertex if it is color mode
+
+	if (colorMode == GREYSCALE)
+		glColor3f(height, height, height);
+	else if (colorMode == COLOR)
+	{
+		if (height <= (float)this->maxHeight / 4)
+		{
+			color[0] = 0;
+			color[1] = (float)height / ((float)this->maxHeight / 4);
+			color[2] = 0;
+			glColor3fv(color);
+			return;
+		}
+		else if (height <= (float)this->maxHeight / 2)
+		{
+			color[0] = (float)height / ((float)this->maxHeight / 2);
+			color[1] = 1;
+			color[2] = 0;
+			glColor3fv(color);
+			return;
+		}
+		else if (height <= (float)this->maxHeight / 4 * 3)
+		{
+			color[0] = 1;
+			color[1] = (float)((float)this->maxHeight / 4 * 3) - height;
+			color[2] = 0;
+			glColor3fv(color);
+			return;
+		}
+		else
+		{
+			color[0] = (float) height / this->maxHeight;
+			color[1] = color[0];
+			color[2] = color[0];
+			glColor3fv(color);
+			return;
+		}
 	}
 }
 
@@ -149,13 +197,13 @@ void TerrainGenerator::setupTerrain()
 				if (a * i + b * j - c > 0)
 				{
 					numUp++;
-					if (this->terrain[i][j] + this->displacement <= 1)
+					if (this->terrain[i][j] + this->displacement <= this->maxHeight)
 						this->terrain[i][j] += this->displacement;
 				}
 				else
 				{
 					numDown++;
-					if (this->terrain[i][j] - this->displacement >= 0)
+					if (this->terrain[i][j] - this->displacement >= this->minHeight)
 						this->terrain[i][j] -= this->displacement;
 				}
 			}
@@ -172,6 +220,11 @@ void TerrainGenerator::setupTerrain()
 void TerrainGenerator::setFillMode(FillMode newMode)
 {
 	this->fillMode = newMode;
+}
+
+void TerrainGenerator::setColorMode(ColorMode newMode)
+{
+	this->colorMode = newMode;
 }
 
 

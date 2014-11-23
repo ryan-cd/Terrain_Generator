@@ -10,8 +10,10 @@ float gCamPos[] = { 0, 50, 400 };	//where the camera is
 float gSceneRotation[3] = { 0, 0, 0 }; //the rotation of the scene
 float gMinSceneRotationX = 0, gMaxSceneRotationX = 90;
 int gMinTerrainSize = 50, gMaxTerrainSize = 300;
-unsigned int gDrawMode = 0;
+unsigned int gFillMode = 0; //this is used in the code to toggle drawing modes
+unsigned int gColorMode = 0; //this is used in the code to toggle fill mode
 bool gHeightmapDrawn = false; //whether the heightmap has been drawn already
+
 
 int gWindowPositionX = 350, gWindowPositionY = 50;
 int gWindowSizeX = 800, gWindowSizeY = 800;
@@ -67,11 +69,11 @@ void keyboard(unsigned char key, int xIn, int yIn)
 		gCamPos[2] -= 10;
 		break;
 	case 'w':
-		gDrawMode++;
-		if (gDrawMode > 2)
-			gDrawMode = 0;
+		gFillMode++;
+		if (gFillMode > 2)
+			gFillMode = 0;
 
-		switch (gDrawMode)
+		switch (gFillMode)
 		{
 		case 0:
 			cout << "solid";
@@ -87,6 +89,20 @@ void keyboard(unsigned char key, int xIn, int yIn)
 			break;
 		}
 		
+		break;
+	case 'c':
+		gColorMode++;
+		if (gColorMode > 1)
+			gColorMode = 0;
+		switch (gColorMode)
+		{
+		case 0:
+			terrainGenerator.setColorMode(TerrainGenerator::COLOR);
+			break;
+		case 1:
+			terrainGenerator.setColorMode(TerrainGenerator::GREYSCALE);
+			break;
+		}
 		break;
 	case 'r':
 		terrainGenerator.reset();
@@ -156,16 +172,13 @@ void display1(void)
 	gluLookAt(gCamPos[0], gCamPos[1], gCamPos[2], 0, 0, 0, 0, 1, 0);
 	glPushMatrix(); // push scene rotation
 	//rotate the scene by the amount specified by the user
-	
-
 	glRotatef(gSceneRotation[0], 1, 0, 0);
 	glRotatef(gSceneRotation[1], 0, 1, 0);
 
-	if (terrainGenerator.getTerrainSize() > gMinTerrainSize && terrainGenerator.getTerrainSize() < gMaxTerrainSize)
+	if (terrainGenerator.getTerrainSize() >= gMinTerrainSize && terrainGenerator.getTerrainSize() <= gMaxTerrainSize)
 		glTranslatef(-terrainGenerator.getTerrainSize() / 2, 0, -terrainGenerator.getTerrainSize() / 2);
 
 	
-
 	terrainGenerator.drawScene();
 
 	
@@ -174,6 +187,7 @@ void display1(void)
 
 void display2(void)
 {
+	//the heightmap only gets drawn once per terrain made
 	if (!gHeightmapDrawn)
 	{
 		glClear(GL_COLOR_BUFFER_BIT);

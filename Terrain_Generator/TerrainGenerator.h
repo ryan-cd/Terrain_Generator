@@ -9,6 +9,7 @@ public:
 	TerrainGenerator(void); //constructor
 	//types
 	enum FillMode { SOLID, WIREFRAME, COMBINATION };
+	enum ColorMode { GREYSCALE, COLOR }; 
 
 	//getters
 	vector<vector<float> > getTerrain();
@@ -19,6 +20,7 @@ public:
 	void setSize(int terrainSize);
 	void setupTerrain();
 	void setFillMode(FillMode newMode);
+	void setColorMode(ColorMode newMode);
 
 	//misc
 	void printTerrain(); //this will print the contents of the terrain array to the console
@@ -27,6 +29,8 @@ public:
 	void reset(); //will make a new terrain
 
 private:
+	float minHeight; //minimum height of a vertex
+	float maxHeight; //max height of a vertex
 	int terrainSize;
 	float displacement;
 	int faultIterations;
@@ -34,9 +38,11 @@ private:
 	bool firstLoad; //true if it has loaded already. false if it hasnt been loaded for the first time yet
 
 	FillMode fillMode; 
+	ColorMode colorMode;
+
 	//functions
 	void drawQuad(int i, int j);
-
+	void setVertexColor(float height); // sets the color of the vertex based on its height
 
 };
 
