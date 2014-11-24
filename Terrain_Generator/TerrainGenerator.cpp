@@ -175,9 +175,8 @@ void TerrainGenerator::setupTerrain()
 	size = this->terrainSize;
 	d = sqrt(2 * (size*size));
 	
-	int numUp = 0; int numDown = 0;
-	cout << endl << "completion...";
-	for (int iterations = 0; iterations < this->faultIterations; iterations++)
+	cout << endl << "Processing...\n";
+	for (int iterations = 1; iterations <= this->faultIterations; iterations++)
 	{
 		v = rand();
 		a = sin(v);
@@ -190,13 +189,11 @@ void TerrainGenerator::setupTerrain()
 			{
 				if (a * i + b * j - c > 0)
 				{
-					numUp++;
 					if (this->terrain[i][j] + this->displacement <= this->maxHeight)
 						this->terrain[i][j] += this->displacement;
 				}
 				else
 				{
-					numDown++;
 					if (this->terrain[i][j] - this->displacement >= this->minHeight)
 						this->terrain[i][j] -= this->displacement;
 				}
@@ -205,10 +202,8 @@ void TerrainGenerator::setupTerrain()
 		}
 		
 		if (!firstLoad && iterations % (this->faultIterations/10) == 0)
-			 cout << (float)iterations / this->faultIterations * 100 << "%...";
+			 cout << "\r" << (float)iterations / (this->faultIterations) * 100 << "%";
 	}
-	//cout << "0,1" << terrain[0][1] << "2,3" << terrain[2][3];
-	cout << "\nNumUP:" << numUp << ", NumDown: " << numDown << endl;
 }
 
 void TerrainGenerator::setFillMode(FillMode newMode)
