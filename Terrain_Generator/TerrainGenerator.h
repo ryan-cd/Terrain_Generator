@@ -21,6 +21,8 @@ public:
 	void setupTerrain();
 	void setFillMode(FillMode newMode);
 	void setColorMode(ColorMode newMode);
+	void incrementHeight(int x, int y);
+	void decrementHeight(int x, int y);
 
 	//misc
 	void printTerrain(); //this will print the contents of the terrain array to the console

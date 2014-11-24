@@ -244,6 +244,20 @@ void idle(void)
 	glutPostRedisplay();
 }
 
+void mouse2(int button, int state, int x, int y)
+{
+	//calculate the indexes of the mountain array. the math correlates what is on screen to the array
+	int i = round((float) x / gWindow2SizeX * terrainGenerator.getTerrainSize());
+	int j = round((float)(gWindow2SizeY - y) / gWindow2SizeY * terrainGenerator.getTerrainSize());
+	
+	if (button == GLUT_LEFT_BUTTON)
+		terrainGenerator.incrementHeight(i, terrainGenerator.getTerrainSize()-j);
+	if (button == GLUT_RIGHT_BUTTON)
+		terrainGenerator.decrementHeight(i, terrainGenerator.getTerrainSize() - j);
+	//this will make the heightmap draw again
+	gHeightmapDrawn = false;
+}
+
 /* main function - program entry point */
 int main(int argc, char** argv)
 {
@@ -283,7 +297,7 @@ int main(int argc, char** argv)
 	gWindow2 = glutCreateWindow("Height Map");
 	glutDisplayFunc(display2);
 	glutIdleFunc(idle);
-	
+	glutMouseFunc(mouse2);
 
 	glutMainLoop();				//starts the event glutMainLoop
 

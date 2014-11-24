@@ -17,7 +17,6 @@ TerrainGenerator::TerrainGenerator(void)
 
 void TerrainGenerator::drawScene(void)
 {
-	//float height;
 	for (int i = 0; i < this->terrainSize; i++)
 	{
 		for (int j = 0; j < this->terrainSize; j ++)
@@ -25,22 +24,17 @@ void TerrainGenerator::drawScene(void)
 			if (i+1 < this->terrainSize && j+1 < this->terrainSize)
 				drawQuad(i, j);
 		}
-		
-		
-		
 	}
-	firstLoad = true;
+	firstLoad = true; //signify that the mountains loaded fully for a first time
 }
 
 void TerrainGenerator::drawHeightMap(void)
 {
-	cout << "\nDrawing Heightmap...";
 	glBegin(GL_POINTS);
 	for (int i = 0; i < this->terrainSize; i++)
 	{
 		for (int j = 0; j < this->terrainSize; j++)
 		{
-			//glColor3f(this->terrain[i][j], this->terrain[i][j], this->terrain[i][j]);
 			setVertexColor(this->terrain[i][j]);
 			//the index is scaled to fit into the window
 			glVertex3f((float)i / this->terrainSize*2, (float)j / this->terrainSize*2, 0);
@@ -225,6 +219,25 @@ void TerrainGenerator::setFillMode(FillMode newMode)
 void TerrainGenerator::setColorMode(ColorMode newMode)
 {
 	this->colorMode = newMode;
+}
+
+void TerrainGenerator::incrementHeight(int x, int y)
+{
+	if (0 <= x && x <= this->terrainSize
+		&& 0 <= y && y <= this->terrainSize
+		&& this->terrain[x][y] + this->displacement <= this->maxHeight)
+	{
+		this->terrain[x][y] += this->displacement;
+	}
+}
+void TerrainGenerator::decrementHeight(int x, int y)
+{
+	if (0 <= x && x <= this->terrainSize
+		&& 0 <= y && y <= this->terrainSize
+		&& this->terrain[x][y] - this->displacement >= this->minHeight)
+	{
+		this->terrain[x][y] -= this->displacement;
+	}
 }
 
 
