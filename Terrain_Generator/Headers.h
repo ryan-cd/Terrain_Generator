@@ -20,6 +20,7 @@
 //#  include <GL/freeglut.h>
 #include <GL/glut.h>
 #include <GL/GL.h>
+
 #endif
 
 #include "TerrainGenerator.h"

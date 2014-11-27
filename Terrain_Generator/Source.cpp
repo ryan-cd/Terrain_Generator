@@ -12,16 +12,17 @@ float gMinSceneRotationX = 0, gMaxSceneRotationX = 90;
 int gMinTerrainSize = 50, gMaxTerrainSize = 300;
 unsigned int gFillMode = 0; //this is used in the code to toggle drawing modes
 unsigned int gColorMode = 0; //this is used in the code to toggle fill mode
+bool lighting = true; //whether the lights are on
 bool gHeightmapDrawn = false; //whether the heightmap has been drawn already
 
 
-int gWindowPositionX = 350, gWindowPositionY = 50;
-int gWindowSizeX = 800, gWindowSizeY = 800;
-int gWindow2SizeX = gMaxTerrainSize, gWindow2SizeY = gMaxTerrainSize;
-int gWindow1 = 0, gWindow2 = 0; //specifies which window to work with
+int gWindowPositionX = 350, gWindowPositionY = 50; //where the first window appears
+int gWindowSizeX = 800, gWindowSizeY = 800; //the size of the window
+int gWindow2SizeX = gMaxTerrainSize, gWindow2SizeY = gMaxTerrainSize; //the size of the second window
+int gWindow1 = 0, gWindow2 = 0; //specifies id of which window to work with
 
 //lighting
-float light_pos[] = { 0, 5, 0, 1.0 };
+float light_pos[] = { 0, 5, 50, 1.0 };
 
 float amb0[4] = { 1, 1, 1, 1 };
 float diff0[4] = { 1, 1, 1, 1 };
@@ -35,16 +36,28 @@ float shiny = 0.8f;
 //Class instantiations
 TerrainGenerator terrainGenerator;
 
-
+/* Prompts user for inputs to run the program */
 void promptUser()
 {
 	int terrainSize = 0;
 	
 	cout << "Welcome to Terrain Generator\n\n";
-	
+
+	cout << "\nControls:"
+		<< "\n\nLEFT SCREEN:"
+		<< "\nArrow keys to rotate scene"
+		<< "\n+/- to zoom"
+		<< "\nc to toggle coloring"
+		<< "\nw to toggle wireframe mode"
+		<< "\nr to reset"
+		<< "\nq/esc to quit"
+		<< "\n\nRIGHT SCREEN:"
+		<< "\nLeft click on pixels to raise the \n corresponding mountain peak \n height at that point"
+		<< "\nRight click on pixels to lower the \n corresponding mountain peak \n height";
+
 	while (terrainSize < gMinTerrainSize || terrainSize > gMaxTerrainSize)
 	{
-		cout << "Please enter a valid terrain size \nto generate (50-300) -> ";
+		cout << "\n\nPlease enter a valid terrain size \nto generate (50-300) -> ";
 		cin >> terrainSize;
 	}
 	terrainGenerator.setSize(terrainSize);
@@ -53,9 +66,12 @@ void promptUser()
 }
 
 
-//OpenGL functions
+/* OpenGL Keyboard Callbacks */
 void keyboard(unsigned char key, int xIn, int yIn)
 {
+	//DELETE THIS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	vector<float> a = { 1, 1, 2 };
+	vector<float> b = { 2, 4, 2 };
 	switch (key)
 	{
 	case '_':
@@ -69,6 +85,7 @@ void keyboard(unsigned char key, int xIn, int yIn)
 		gCamPos[2] -= 10;
 		break;
 	case 'w':
+		//toggle wireframe mode
 		gFillMode++;
 		if (gFillMode > 2)
 			gFillMode = 0;
@@ -76,21 +93,19 @@ void keyboard(unsigned char key, int xIn, int yIn)
 		switch (gFillMode)
 		{
 		case 0:
-			cout << "solid";
 			terrainGenerator.setFillMode(TerrainGenerator::SOLID);
 			break;
 		case 1:
-			cout << "wireframe";
 			terrainGenerator.setFillMode(TerrainGenerator::WIREFRAME);
 			break;
 		case 2:
-			cout << "combo";
 			terrainGenerator.setFillMode(TerrainGenerator::COMBINATION);
 			break;
 		}
 		
 		break;
 	case 'c':
+		//toggle color mode
 		gColorMode++;
 		if (gColorMode > 1)
 			gColorMode = 0;
@@ -106,7 +121,25 @@ void keyboard(unsigned char key, int xIn, int yIn)
 		break;
 	case 'r':
 		terrainGenerator.reset();
-		gHeightmapDrawn = false;
+		gHeightmapDrawn = false; //this will cause the heightmap to redraw
+		break;
+	case 'l':
+		/* Toggle lighting */
+		lighting = lighting ? false : true;
+		if (lighting)
+		{
+			glEnable(GL_LIGHT0);
+		}
+		else 
+		{
+			glDisable(GL_LIGHT0);
+		}
+		break;
+	case 's':
+		glShadeModel(GL_SMOOTH);
+		break;
+	case 'f':
+		glShadeModel(GL_FLAT);
 		break;
 	case 'q':
 	case 27:	//27 is the esc key
@@ -128,11 +161,16 @@ void init(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(45, 1, 1, 400);
+
+	//glShadeModel(GL_FLAT);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 }
 
-/* callbacks start here */
+/* OpenGL Special Key Callback */
 void special(int key, int x, int y)
 {
+	//the keys in the switch rotate the scene
 	switch (key)
 	{
 
@@ -158,9 +196,7 @@ void special(int key, int x, int y)
 	glutPostRedisplay();
 }
 
-/* display function - GLUT display callback function
-*		clears the screen, sets the camera position, draws the ground plane and movable box
-*/
+/* OpenGL Display function for main screen*/
 void display1(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -175,12 +211,14 @@ void display1(void)
 	glRotatef(gSceneRotation[0], 1, 0, 0);
 	glRotatef(gSceneRotation[1], 0, 1, 0);
 
+	//move the terrain to be in the center of the scene
 	if (terrainGenerator.getTerrainSize() >= gMinTerrainSize && terrainGenerator.getTerrainSize() <= gMaxTerrainSize)
 		glTranslatef(-terrainGenerator.getTerrainSize() / 2, 0, -terrainGenerator.getTerrainSize() / 2);
 
-	
+	//draw the terrain
 	terrainGenerator.drawScene();
-
+	//glShadeModel(GL_SMOOTH);
+	glPopMatrix();
 	
 	glutSwapBuffers();
 }
@@ -196,38 +234,14 @@ void display2(void)
 		glLoadIdentity();
 		glPushMatrix();
 	
+		//The adjustments are to make the coordinates more natural before drawing
 		glScalef(-1, -1, -1);
 		glTranslatef(1, -1, 0);
 
 		gluLookAt(0, 0, -1, 0, 0, 0, 0, 1, 0);
-		/*glBegin(GL_POLYGON);
-		glColor3f(0, 0, 1);
-		glVertex3f(0, 0, 0);
-		glColor3f(1, 1, 1);
-		glVertex3f(0, 2, 0);
-		glColor3f(1, 0, 1);
-		glVertex3f(2, 2, 0);
-		glColor3f(1, 1, 0);
-		glVertex3f(2, 0, 0);
-		glEnd();*/
+		
 	
-		/*glBegin(GL_POINTS);
-		for (int i = 0; i < terrainGenerator.getTerrainSize(); i++)
-		{
-			for (int j = 0; j < terrainGenerator.getTerrainSize(); j++)
-			{
-				//cout << terrainGenerator.getTerrain()[i][j] <<"\n";
-				//cout << i / terrainGenerator.getTerrainSize() << j / terrainGenerator.getTerrainSize() <<"\n";
-				glColor3f(terrainGenerator.getTerrain()[i][j], terrainGenerator.getTerrain()[i][j], terrainGenerator.getTerrain()[i][j]);
-				glVertex3f((float)i / terrainGenerator.getTerrainSize(), (float)j / terrainGenerator.getTerrainSize(), 0);
-			
-			
-			}
-			cout << (float)i / terrainGenerator.getTerrainSize() << "%done...";
-		}
-		glEnd();*/
-	
-		terrainGenerator.drawHeightMap();
+		terrainGenerator.drawHeightMap(); //draw the heightmap
 		
 		glPopMatrix();
 	
@@ -236,6 +250,8 @@ void display2(void)
 	}
 }
 
+/*OpenGL Display Callback
+Will call display functions of both windows*/
 void idle(void)
 {
 	glutSetWindow(gWindow1);
@@ -250,10 +266,12 @@ void mouse2(int button, int state, int x, int y)
 	int i = round((float) x / gWindow2SizeX * terrainGenerator.getTerrainSize());
 	int j = round((float)(gWindow2SizeY - y) / gWindow2SizeY * terrainGenerator.getTerrainSize());
 	
+	//either raise or lower the peak depending on if it was left/right clicked
 	if (button == GLUT_LEFT_BUTTON)
 		terrainGenerator.incrementHeight(i, terrainGenerator.getTerrainSize()-j);
 	if (button == GLUT_RIGHT_BUTTON)
 		terrainGenerator.decrementHeight(i, terrainGenerator.getTerrainSize() - j);
+	
 	//this will make the heightmap draw again
 	gHeightmapDrawn = false;
 }
@@ -261,7 +279,7 @@ void mouse2(int button, int state, int x, int y)
 /* main function - program entry point */
 int main(int argc, char** argv)
 {
-	promptUser();
+	promptUser(); //gives instructions and asks for size
 	
 	glutInit(&argc, argv);		//starts up GLUT
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -269,9 +287,10 @@ int main(int argc, char** argv)
 	glutInitWindowSize(gWindowSizeX, gWindowSizeY);
 	glutInitWindowPosition(gWindowPositionX, gWindowPositionY);
 	
-	gWindow1 = glutCreateWindow("Terain Generator");	//creates the window
+	gWindow1 = glutCreateWindow("Terain Generator");	//creates the main window and sets its id
 	
-	//glEnable(GL_LIGHTING);
+	/* lighting setup */
+	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
@@ -285,7 +304,7 @@ int main(int argc, char** argv)
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, m_spec);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shiny);
 
-	glutDisplayFunc(display1);	//registers "display" as the display callback function
+	glutDisplayFunc(display1);	//registers "display1" as the display callback function
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(special);
 	glutIdleFunc(idle);
@@ -294,7 +313,7 @@ int main(int argc, char** argv)
 
 	glutInitWindowSize(gWindow2SizeX, gWindow2SizeY);
 	glutInitWindowPosition(gWindowSizeX + gWindowPositionX, gWindowPositionY);
-	gWindow2 = glutCreateWindow("Height Map");
+	gWindow2 = glutCreateWindow("Height Map"); //set the id of the second window and creative 
 	glutDisplayFunc(display2);
 	glutIdleFunc(idle);
 	glutMouseFunc(mouse2);

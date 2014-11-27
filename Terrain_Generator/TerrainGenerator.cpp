@@ -1,18 +1,28 @@
 #include "TerrainGenerator.h"
 
 
+//temporary variables
+vector<float> vertexA(3);
+vector<float> vertexB(3);
+vector<float> vertexC(3);
+vector<float> vertexD(3);
+vector<float> vectorAB(3);
+vector<float> vectorBC(3);
+vector<float> vectorCD(3);
+vector<float> vectorDA(3);
+vector<float> normalVector(3);
 
 TerrainGenerator::TerrainGenerator(void)
 {
 	srand(time(NULL)); // set random number generator seed
 	//NOTE: min and max height must not change from 0 or 1. 
-	this->minHeight = 0;
-	this->maxHeight = 1;
+	this->minHeight = 0; //min value allowed in the terrain data structure
+	this->maxHeight = 1; //max value allowed in the terrain data structure
 	this->displacement = 0.02; // amount to increment or decrement a height
-	this->faultIterations = 800;
-	this->firstLoad = false;
-	this->fillMode = SOLID;
-	this->colorMode = COLOR;
+	this->faultIterations = 800; //number of fault iterations to do
+	this->firstLoad = false; //whether the terrain has already been loaded once already
+	this->fillMode = SOLID; //wireframe mode
+	this->colorMode = COLOR; //color/greyscale mode
 }
 
 void TerrainGenerator::drawScene(void)
@@ -43,6 +53,7 @@ void TerrainGenerator::drawHeightMap(void)
 	glEnd();
 }
 
+
 void TerrainGenerator::drawQuad(int i, int j)
 {
 	float multiplier = 30; //multiplier to affect the height value
@@ -68,41 +79,64 @@ void TerrainGenerator::drawQuad(int i, int j)
 
 	for (int z = 0; z < iterations; z++)
 	{
+		/* The quad is indexed clockwise like this
+		* A__B
+		* |  |
+		* D__C */
+
+
+
+
 		//this will only be reached if the mode is combo
 		if (z == 1)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
-		
+
 		glBegin(GL_QUADS);
 		height = this->terrain[i][j];
 		if (z == 0)
 			setVertexColor(height); //set the glColor. This requires math for the COLOR mode
 		else
-			glColor3f(1-height, 1-height, 1-height);
+			glColor3f(1 - height, 1 - height, 1 - height);
 		glVertex3f(i, height * multiplier, j);
+		vertexA[0] = i; vertexA[1] = height * multiplier; vertexA[2] = j;
+		//glNormal3f(0, 0, 1);
 
 		height = this->terrain[i + 1][j];
 		if (z == 0)
-			setVertexColor(height); 
+			setVertexColor(height);
 		else
 			glColor3f(1 - height, 1 - height, 1 - height);
 		glVertex3f(i + 1, height * multiplier, j);
+		vertexB[0] = i + 1; vertexB[1] = height * multiplier; vertexB[2] = j;
+		//glNormal3f(0, 0, 1);
 
 		height = this->terrain[i + 1][j + 1];
 		if (z == 0)
-			setVertexColor(height); 
+			setVertexColor(height);
 		else
 			glColor3f(1 - height, 1 - height, 1 - height);
 		glVertex3f(i + 1, height * multiplier, j + 1);
+		vertexC[0] = i + 1; vertexC[1] = height * multiplier; vertexC[2] = j + 1;
+		//glNormal3f(0, 0, 1);
 
 		height = this->terrain[i][j + 1];
 		if (z == 0)
-			setVertexColor(height); 
+			setVertexColor(height);
 		else
 			glColor3f(1 - height, 1 - height, 1 - height);
 		glVertex3f(i, height * multiplier, j + 1);
+		vertexD[0] = i; vertexD[1] = height * multiplier; vertexD[2] = j + 1;
 
+		vectorAB = { vertexB[0] - vertexA[0], vertexB[1] - vertexA[1], vertexB[2] - vertexA[2] };
+		vectorBC = { vertexC[0] - vertexB[0], vertexC[1] - vertexB[1], vertexC[2] - vertexB[2] };
+		vectorCD = { vertexD[0] - vertexC[0], vertexD[1] - vertexC[1], vertexD[2] - vertexC[2] };
+		vectorDA = { vertexD[0] - vertexA[0], vertexD[1] - vertexA[1], vertexD[2] - vertexA[2] };
+
+		normalVector = normal(vectorBC, vectorCD);
+		glNormal3f(normalVector[0], normalVector[1], normalVector[2]);
+		
 
 		glEnd();
 	}
@@ -175,7 +209,7 @@ void TerrainGenerator::setupTerrain()
 	size = this->terrainSize;
 	d = sqrt(2 * (size*size));
 	
-	cout << endl << "Processing...\n";
+	cout << "\r                "; // clear the console line
 	for (int iterations = 1; iterations <= this->faultIterations; iterations++)
 	{
 		v = rand();
@@ -202,8 +236,10 @@ void TerrainGenerator::setupTerrain()
 		}
 		
 		if (!firstLoad && iterations % (this->faultIterations/10) == 0)
-			 cout << "\r" << (float)iterations / (this->faultIterations) * 100 << "%";
+			 cout << "\rLoading..." << (float)iterations / (this->faultIterations) * 100 << "%";
 	}
+	cout << "\rLoading...Done!";
+	
 }
 
 void TerrainGenerator::setFillMode(FillMode newMode)
@@ -259,6 +295,25 @@ void TerrainGenerator::printTerrain()
 int TerrainGenerator::getTerrainSize(void)
 {
 	return this->terrainSize;
+}
+
+/* inputs two 3d vectors returns the normalized normal */
+vector<float> TerrainGenerator::normal(vector<float> a, vector<float> b)
+{
+	//add input checking
+	vector<float> result(3);
+	float magnitude;
+	result[0] = (float)a[1] * b[2] - a[2] * b[1];
+	result[1] = (float)a[2] * b[0] - a[0] * b[2];
+	result[2] = (float)a[0] * b[1] - a[1] * b[0];
+	magnitude = sqrt(pow(result[0], 2) + pow(result[1],2) + pow(result[2], 2));
+
+	for (int i = 0; i <= 2; i++)
+		result[i] /= magnitude;
+	
+	//cout << "\n" << result[0] << " " << result[1] << " " << result[2];
+
+	return result;
 }
 
 void TerrainGenerator::reset(void)

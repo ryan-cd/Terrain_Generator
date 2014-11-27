@@ -12,17 +12,18 @@ public:
 	enum ColorMode { GREYSCALE, COLOR }; 
 
 	//getters
-	vector<vector<float> > getTerrain();
-	int getTerrainSize();
+	vector<vector<float> > getTerrain(); //returns the data structure that holds the terrain
+	int getTerrainSize(); //returns the terrain width (which equals the height)
+	vector<float> normal(vector<float> a, vector<float> b); //returns of two vectors (normalized)
 
 
 	//setters
-	void setSize(int terrainSize);
-	void setupTerrain();
+	void setSize(int terrainSize); //set the terrain size record
+	void setupTerrain(); //change the terrain data structure to hold a mountainous setup
 	void setFillMode(FillMode newMode);
 	void setColorMode(ColorMode newMode);
-	void incrementHeight(int x, int y);
-	void decrementHeight(int x, int y);
+	void incrementHeight(int x, int y); //takes the coordinates of the terrain to change the height
+	void decrementHeight(int x, int y); //takes the coordinates of the terrain to change the height
 
 	//misc
 	void printTerrain(); //this will print the contents of the terrain array to the console
@@ -33,17 +34,17 @@ public:
 private:
 	float minHeight; //minimum height of a vertex
 	float maxHeight; //max height of a vertex
-	int terrainSize;
-	float displacement;
-	int faultIterations;
-	vector<vector<float>> terrain; 
+	int terrainSize; //the internal store of the width of the terrain
+	float displacement; //the amount to displace pixels at a fault
+	int faultIterations; //the number of faults to make
+	vector<vector<float>> terrain; //the data structure holding the terrain setup
 	bool firstLoad; //true if it has loaded already. false if it hasnt been loaded for the first time yet
 
-	FillMode fillMode; 
-	ColorMode colorMode;
+	FillMode fillMode; //the wirefram mode to use 
+	ColorMode colorMode; //whether the colors are grey or colored
 
 	//functions
-	void drawQuad(int i, int j);
+	void drawQuad(int i, int j); //draw a quad using the point specified
 	void setVertexColor(float height); // sets the color of the vertex based on its height
 
 };
