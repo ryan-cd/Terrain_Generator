@@ -26,10 +26,10 @@ public:
 	void decrementHeight(int x, int y); //takes the coordinates of the terrain to change the height
 
 	//misc
-	void printTerrain(); //this will print the contents of the terrain array to the console
 	void drawScene(); //draws the terrain
 	void drawHeightMap(); //draws the heightmap
 	void reset(); //will make a new terrain
+	void resetNormals(); //will redo all the normals 
 
 private:
 	float minHeight; //minimum height of a vertex
@@ -38,7 +38,9 @@ private:
 	float displacement; //the amount to displace pixels at a fault
 	int faultIterations; //the number of faults to make
 	vector<vector<float>> terrain; //the data structure holding the terrain setup
+	vector<vector<vector<float>>> normalList; //the data structure holding the normals
 	bool firstLoad; //true if it has loaded already. false if it hasnt been loaded for the first time yet
+	bool normalsDrawn; //whether the normals have been drawn
 
 	FillMode fillMode; //the wirefram mode to use 
 	ColorMode colorMode; //whether the colors are grey or colored

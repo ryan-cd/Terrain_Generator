@@ -9,7 +9,7 @@ float gCamPos[] = { 0, 50, 400 };	//where the camera is
 
 float gSceneRotation[3] = { 0, 0, 0 }; //the rotation of the scene
 float gMinSceneRotationX = 0, gMaxSceneRotationX = 90;
-int gMinTerrainSize = 50, gMaxTerrainSize = 300;
+int gMinTerrainSize = 10, gMaxTerrainSize = 300;
 unsigned int gFillMode = 0; //this is used in the code to toggle drawing modes
 unsigned int gColorMode = 0; //this is used in the code to toggle fill mode
 bool lighting = true; //whether the lights are on
@@ -22,7 +22,7 @@ int gWindow2SizeX = gMaxTerrainSize, gWindow2SizeY = gMaxTerrainSize; //the size
 int gWindow1 = 0, gWindow2 = 0; //specifies id of which window to work with
 
 //lighting
-float light_pos[] = { 0, 5, 50, 1.0 };
+float light_pos[] = { 0, 5, 20, 1.0 };
 
 float amb0[4] = { 1, 1, 1, 1 };
 float diff0[4] = { 1, 1, 1, 1 };
@@ -32,6 +32,18 @@ float m_amb[] = { 0.1, 0.1, 0.1, 1.0 };
 float m_diff[] = { 1, 1, 1, 1.0 };
 float m_spec[] = { 1, 1, 1, 1.0 };
 float shiny = 0.8f;
+
+//lighting 2
+/*float light_pos2[] = { 0, 5, 0, 1.0 };
+
+float amb02[4] = { 1, 1, 1, 1 };
+float diff02[4] = { 1, 1, 1, 1 };
+float spec02[4] = { 1, 1, 1, 1 };
+
+float m_amb2[] = { 0.1, 0.1, 0.1, 1.0 };
+float m_diff2[] = { 1, 1, 1, 1.0 };
+float m_spec2[] = { 1, 1, 1, 1.0 };
+float shiny2 = 0.8f;*/
 
 //Class instantiations
 TerrainGenerator terrainGenerator;
@@ -162,7 +174,7 @@ void init(void)
 	glLoadIdentity();
 	gluPerspective(45, 1, 1, 400);
 
-	//glShadeModel(GL_FLAT);
+	glShadeModel(GL_FLAT);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 }
@@ -192,7 +204,38 @@ void special(int key, int x, int y)
 		if (gSceneRotation[0] > gMinSceneRotationX)
 			gSceneRotation[0] -= 1;
 		break;
+
+	case GLUT_KEY_F1:
+		light_pos[0] -= 10;
+		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		break;
+
+	case GLUT_KEY_F2:
+		light_pos[0] += 10;
+		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		break;
+
+	case GLUT_KEY_F3:
+		light_pos[1] -= 10;
+		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		break;
+
+	case GLUT_KEY_F4:
+		light_pos[1] += 10;
+		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		break;
+
+	case GLUT_KEY_F5:
+		light_pos[2] -= 10;
+		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		break;
+
+	case GLUT_KEY_F6:
+		light_pos[2] += 10;
+		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		break;
 	}
+
 	glutPostRedisplay();
 }
 

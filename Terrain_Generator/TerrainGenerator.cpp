@@ -10,7 +10,15 @@ vector<float> vectorAB(3);
 vector<float> vectorBC(3);
 vector<float> vectorCD(3);
 vector<float> vectorDA(3);
-vector<float> normalVector(3);
+vector<float> vectorBA(3);
+vector<float> vectorCB(3);
+vector<float> vectorDC(3);
+vector<float> vectorAD(3);
+vector<float> normalVectorA(3);
+vector<float> normalVectorB(3);
+vector<float> normalVectorC(3);
+vector<float> normalVectorD(3);
+vector<float> tempVector(3);
 
 TerrainGenerator::TerrainGenerator(void)
 {
@@ -21,6 +29,7 @@ TerrainGenerator::TerrainGenerator(void)
 	this->displacement = 0.02; // amount to increment or decrement a height
 	this->faultIterations = 800; //number of fault iterations to do
 	this->firstLoad = false; //whether the terrain has already been loaded once already
+	this->normalsDrawn = false;
 	this->fillMode = SOLID; //wireframe mode
 	this->colorMode = COLOR; //color/greyscale mode
 }
@@ -35,7 +44,9 @@ void TerrainGenerator::drawScene(void)
 				drawQuad(i, j);
 		}
 	}
+	//cout << endl << this->normalList[0][0][0] << this->normalList[0][0][1] << this->normalList[0][0][2];
 	firstLoad = true; //signify that the mountains loaded fully for a first time
+	normalsDrawn = true;
 }
 
 void TerrainGenerator::drawHeightMap(void)
@@ -94,48 +105,100 @@ void TerrainGenerator::drawQuad(int i, int j)
 		}
 
 		glBegin(GL_QUADS);
-		height = this->terrain[i][j];
+		
+		vertexA[0] = i; 
+		vertexA[1] = this->terrain[i][j] * multiplier; 
+		vertexA[2] = j;
+
+		vertexB[0] = i + 1; 
+		vertexB[1] = this->terrain[i+1][j] * multiplier; 
+		vertexB[2] = j;
+
+		vertexC[0] = i + 1; 
+		vertexC[1] = this->terrain[i+1][j+1] * multiplier; 
+		vertexC[2] = j + 1;
+
+		vertexD[0] = i; 
+		vertexD[1] = this->terrain[i][j+1] * multiplier; 
+		vertexD[2] = j + 1;
+		
+		if (!normalsDrawn)
+		{
+			vectorAB = { vertexB[0] - vertexA[0], vertexB[1] - vertexA[1], vertexB[2] - vertexA[2] };
+			vectorBC = { vertexC[0] - vertexB[0], vertexC[1] - vertexB[1], vertexC[2] - vertexB[2] };
+			vectorCD = { vertexD[0] - vertexC[0], vertexD[1] - vertexC[1], vertexD[2] - vertexC[2] };
+			vectorDA = { vertexD[0] - vertexA[0], vertexD[1] - vertexA[1], vertexD[2] - vertexA[2] };
+
+			vectorBA = { vertexA[0] - vertexB[0], vertexA[1] - vertexB[1], vertexA[2] - vertexB[2] };
+			vectorCB = { vertexB[0] - vertexC[0], vertexB[1] - vertexC[1], vertexB[2] - vertexC[2] };
+			vectorDC = { vertexC[0] - vertexD[0], vertexC[1] - vertexD[1], vertexC[2] - vertexD[2] };
+			vectorAD = { vertexA[0] - vertexD[0], vertexA[1] - vertexD[1], vertexA[2] - vertexD[2] };
+		
+			normalVectorA = normal(vectorAB, vectorAD);
+			normalVectorB = normal(vectorBA, vectorBC);
+			normalVectorC = normal(vectorCB, vectorCD);
+			normalVectorD = normal(vectorDC, vectorDA);
+			
+			tempVector = { ((float)normalVectorA[0] + normalVectorB[0] + normalVectorC[0] + normalVectorD[0]) / 4,
+				((float)normalVectorA[1] + normalVectorB[1] + normalVectorC[1] + normalVectorD[1]) / 4,
+				((float)normalVectorA[2] + normalVectorB[2] + normalVectorC[2] + normalVectorD[2]) / 4 };
+
+			this->normalList[i][j] = tempVector;
+		}
+		//set the normal of this set of points
+		glNormal3f(this->normalList[i][j][0], this->normalList[i][j][1], this->normalList[i][j][2]);
+		
+		
+		// DRAW VERTEX A //
+		
 		if (z == 0)
-			setVertexColor(height); //set the glColor. This requires math for the COLOR mode
+			setVertexColor((float)vertexA[1] / multiplier);
 		else
-			glColor3f(1 - height, 1 - height, 1 - height);
-		glVertex3f(i, height * multiplier, j);
-		vertexA[0] = i; vertexA[1] = height * multiplier; vertexA[2] = j;
-		//glNormal3f(0, 0, 1);
+		{
+			glColor3f(1 - (float)vertexA[1] / multiplier,
+				1 - (float)vertexA[1] / multiplier,
+				1 - (float)vertexA[1] / multiplier);
+		}
+		glVertex3f(vertexA[0], vertexA[1], vertexA[2]);
+		
 
-		height = this->terrain[i + 1][j];
+		// DRAW VERTEX B //
+		
 		if (z == 0)
-			setVertexColor(height);
+			setVertexColor((float)vertexB[1] / multiplier);
 		else
-			glColor3f(1 - height, 1 - height, 1 - height);
-		glVertex3f(i + 1, height * multiplier, j);
-		vertexB[0] = i + 1; vertexB[1] = height * multiplier; vertexB[2] = j;
-		//glNormal3f(0, 0, 1);
+		{
+			glColor3f(1 - (float)vertexB[1] / multiplier,
+				1 - (float)vertexB[1] / multiplier,
+				1 - (float)vertexB[1] / multiplier);
+		}
+		glVertex3f(vertexB[0], vertexB[1], vertexB[2]);
+		
 
-		height = this->terrain[i + 1][j + 1];
+		// DRAW VERTEX C //
+		
 		if (z == 0)
-			setVertexColor(height);
+			setVertexColor((float)vertexC[1] / multiplier);
 		else
-			glColor3f(1 - height, 1 - height, 1 - height);
-		glVertex3f(i + 1, height * multiplier, j + 1);
-		vertexC[0] = i + 1; vertexC[1] = height * multiplier; vertexC[2] = j + 1;
-		//glNormal3f(0, 0, 1);
+		{
+			glColor3f(1 - (float)vertexC[1] / multiplier,
+				1 - (float)vertexC[1] / multiplier,
+				1 - (float)vertexC[1] / multiplier);
+		}
+		glVertex3f(vertexC[0], vertexC[1], vertexC[2]);
+		
 
-		height = this->terrain[i][j + 1];
+		// DRAW VERTEX D //
+		
 		if (z == 0)
-			setVertexColor(height);
+			setVertexColor((float)vertexD[1] / multiplier);
 		else
-			glColor3f(1 - height, 1 - height, 1 - height);
-		glVertex3f(i, height * multiplier, j + 1);
-		vertexD[0] = i; vertexD[1] = height * multiplier; vertexD[2] = j + 1;
-
-		vectorAB = { vertexB[0] - vertexA[0], vertexB[1] - vertexA[1], vertexB[2] - vertexA[2] };
-		vectorBC = { vertexC[0] - vertexB[0], vertexC[1] - vertexB[1], vertexC[2] - vertexB[2] };
-		vectorCD = { vertexD[0] - vertexC[0], vertexD[1] - vertexC[1], vertexD[2] - vertexC[2] };
-		vectorDA = { vertexD[0] - vertexA[0], vertexD[1] - vertexA[1], vertexD[2] - vertexA[2] };
-
-		normalVector = normal(vectorBC, vectorCD);
-		glNormal3f(normalVector[0], normalVector[1], normalVector[2]);
+		{
+			glColor3f(1 - (float)vertexD[1] / multiplier,
+				1 - (float)vertexD[1] / multiplier,
+				1 - (float)vertexD[1] / multiplier);
+		}
+		glVertex3f(vertexD[0], vertexD[1], vertexD[2]);
 		
 
 		glEnd();
@@ -195,6 +258,16 @@ void TerrainGenerator::setSize(int terrainSize)
 	if (terrainSize >= 0){
 		this->terrainSize = terrainSize;
 		terrain.resize(terrainSize, vector<float>(terrainSize, 0));
+
+		normalList.resize(terrainSize);
+		for (int i = 0; i < terrainSize; i++)
+		{
+			normalList[i].resize(terrainSize);
+			for (int j = 0; j < terrainSize; j++)
+			{
+				normalList[i][j].resize(3);
+			}
+		}
 	}
 }
 
@@ -279,19 +352,6 @@ vector<vector<float> > TerrainGenerator::getTerrain()
 	return this->terrain;
 }
 
-void TerrainGenerator::printTerrain()
-{
-	for (int i = 0; i < this->terrainSize; i++)
-	{
-		for (int j = 0; j < this->terrainSize; j++)
-		{
-			cout << this->terrain[i][j] << " ";
-			if (j == this->terrainSize - 1)
-				cout << "\n";
-		}
-	}
-}
-
 int TerrainGenerator::getTerrainSize(void)
 {
 	return this->terrainSize;
@@ -320,4 +380,9 @@ void TerrainGenerator::reset(void)
 {
 	this->firstLoad = false;
 	setupTerrain();
+}
+
+void TerrainGenerator::resetNormals(void)
+{
+	this->normalsDrawn = false;
 }
