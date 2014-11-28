@@ -211,7 +211,7 @@ void TerrainGenerator::setVertexColor(float height)
 {
 	float color[3] = { 0, 0, 0 }; // the color to set the vertex if it is color mode
 
-	if (colorMode == GREYSCALE)
+	if (colorMode == GREYSCALE) 
 		glColor3f(height, height, height);
 	else if (colorMode == COLOR)
 	{

@@ -22,7 +22,7 @@ int gWindow2SizeX = gMaxTerrainSize, gWindow2SizeY = gMaxTerrainSize; //the size
 int gWindow1 = 0, gWindow2 = 0; //specifies id of which window to work with
 
 //lighting
-float light_pos[] = { 0, 5, 20, 1.0 };
+float light_pos[] = { -100, -110, 0, 1.0 };
 
 float amb0[4] = { 1, 1, 1, 1 };
 float diff0[4] = { 1, 1, 1, 1 };
@@ -34,16 +34,11 @@ float m_spec[] = { 1, 1, 1, 1.0 };
 float shiny = 0.8f;
 
 //lighting 2
-/*float light_pos2[] = { 0, 5, 0, 1.0 };
+float light_pos2[] = { 100, 0, 0, 1.0 };
 
-float amb02[4] = { 1, 1, 1, 1 };
-float diff02[4] = { 1, 1, 1, 1 };
-float spec02[4] = { 1, 1, 1, 1 };
-
-float m_amb2[] = { 0.1, 0.1, 0.1, 1.0 };
-float m_diff2[] = { 1, 1, 1, 1.0 };
-float m_spec2[] = { 1, 1, 1, 1.0 };
-float shiny2 = 0.8f;*/
+float amb02[4] = { 1, 0, 0, 1 };
+float diff02[4] = { 1, 0, 0, 1 };
+float spec02[4] = { 1, 0, 0, 1 };
 
 //Class instantiations
 TerrainGenerator terrainGenerator;
@@ -207,32 +202,63 @@ void special(int key, int x, int y)
 
 	case GLUT_KEY_F1:
 		light_pos[0] -= 10;
-		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		cout << endl << "Light 1 Position: " << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
 		break;
 
 	case GLUT_KEY_F2:
 		light_pos[0] += 10;
-		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		cout << endl << "Light 1 Position: " << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
 		break;
 
 	case GLUT_KEY_F3:
 		light_pos[1] -= 10;
-		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		cout << endl << "Light 1 Position: " << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
 		break;
 
 	case GLUT_KEY_F4:
 		light_pos[1] += 10;
-		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		cout << endl << "Light 1 Position: " << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
 		break;
 
 	case GLUT_KEY_F5:
 		light_pos[2] -= 10;
-		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		cout << endl << "Light 1 Position: " << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
 		break;
 
 	case GLUT_KEY_F6:
 		light_pos[2] += 10;
-		cout << endl << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		cout << endl << "Light 1 Position: " << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
+		break;
+	
+
+	case GLUT_KEY_F7:
+		light_pos2[0] -= 10;
+		cout << endl << "Light 2 Position: " << light_pos2[0] << " " << light_pos2[1] << " " << light_pos2[2];
+		break;
+
+	case GLUT_KEY_F8:
+		light_pos2[0] += 10;
+		cout << endl << "Light 2 Position: " << light_pos2[0] << " " << light_pos2[1] << " " << light_pos2[2];
+		break;
+
+	case GLUT_KEY_F9:
+		light_pos2[1] -= 10;
+		cout << endl << "Light 2 Position: " << light_pos2[0] << " " << light_pos2[1] << " " << light_pos2[2];
+		break;
+
+	case GLUT_KEY_F10:
+		light_pos2[1] += 10;
+		cout << endl << "Light 2 Position: " << light_pos2[0] << " " << light_pos2[1] << " " << light_pos2[2];
+		break;
+
+	case GLUT_KEY_F11:
+		light_pos2[2] -= 10;
+		cout << endl << "Light 2 Position: " << light_pos2[0] << " " << light_pos2[1] << " " << light_pos2[2];
+		break;
+
+	case GLUT_KEY_F12:
+		light_pos2[2] += 10;
+		cout << endl << "Light 2 Position: " << light_pos2[0] << " " << light_pos2[1] << " " << light_pos2[2];
 		break;
 	}
 
@@ -247,6 +273,7 @@ void display1(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+	glLightfv(GL_LIGHT1, GL_POSITION, light_pos2);
 
 	gluLookAt(gCamPos[0], gCamPos[1], gCamPos[2], 0, 0, 0, 0, 1, 0);
 	glPushMatrix(); // push scene rotation
@@ -335,12 +362,16 @@ int main(int argc, char** argv)
 	/* lighting setup */
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
 
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, amb0);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diff0);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, spec0);
-
+	glLightfv(GL_LIGHT1, GL_POSITION, light_pos2);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, amb02);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, diff02);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, spec02);
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, m_amb);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, m_diff);
