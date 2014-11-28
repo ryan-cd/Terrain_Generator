@@ -1,18 +1,36 @@
+/*
+TERRAIN GENERATOR
+RYAN DAVIS
+
+Please read the readme.txt file
+
+Extra feature 1:
+3) 2D Terrain Overview
+Extra feature 2:
+4) Terrain Modification
+BONUS extra feature 3:
+7) Improved map coloring
+
+Note: toggle lighting with l
+
+
+
+*/
+
+
 #include "Headers.h"
 
-
-
 //Globals
-
 
 float gCamPos[] = { 0, 50, 400 };	//where the camera is
 
 float gSceneRotation[3] = { 0, 0, 0 }; //the rotation of the scene
 float gMinSceneRotationX = 0, gMaxSceneRotationX = 90;
-int gMinTerrainSize = 10, gMaxTerrainSize = 300;
+int gMinTerrainSize = 50, gMaxTerrainSize = 300;
 unsigned int gFillMode = 0; //this is used in the code to toggle drawing modes
 unsigned int gColorMode = 0; //this is used in the code to toggle fill mode
 unsigned int gLightingMode = 0; //whether 0, 1, or both lights are on
+TerrainGenerator::ShadingMode gShadingMode = TerrainGenerator::FLAT; //the shading mode to use
 bool gHeightmapDrawn = false; //whether the heightmap has been drawn already
 
 
@@ -22,7 +40,7 @@ int gWindow2SizeX = gMaxTerrainSize, gWindow2SizeY = gMaxTerrainSize; //the size
 int gWindow1 = 0, gWindow2 = 0; //specifies id of which window to work with
 
 //lighting
-float light_pos[] = { -100, -110, 0, 1.0 };
+float light_pos[] = { -100, 0, 0, 1.0 };
 
 float amb0[4] = { 0, 0, 1, 1 };
 float diff0[4] = { 1, 1, 1, 1 };
@@ -36,9 +54,9 @@ float shiny = 0.8f;
 //lighting 2
 float light_pos2[] = { 100, 0, 0, 1.0 };
 
-float amb02[4] = { 1, 0.3, 0.3, 1 };
-float diff02[4] = { 1, 0.3, 0.3, 1 };
-float spec02[4] = { 1, 0.3, 0.3, 1 };
+float amb1[4] = { 1, 0.3, 0.3, 1 };
+float diff1[4] = { 1, 0.3, 0.3, 1 };
+float spec1[4] = { 1, 0.3, 0.3, 1 };
 
 //Class instantiations
 TerrainGenerator terrainGenerator;
@@ -55,6 +73,9 @@ void promptUser()
 		<< "\nArrow keys to rotate scene"
 		<< "\n+/- to zoom"
 		<< "\nc to toggle coloring"
+		<< "\ng to toggle between flat and gouraud shading"
+		<< "\nf to turn on GL_FLAT"
+		<< "\ns to turn on GL_SMOOTH"
 		<< "\nw to toggle wireframe mode"
 		<< "\nl to toggle which lights to have on"
 		<< "\nF1/F2 to move light 1 along x axis"
@@ -69,13 +90,14 @@ void promptUser()
 		<< "\nLeft click on pixels to raise the \n corresponding mountain peak \n height at that point"
 		<< "\nRight click on pixels to lower the \n corresponding mountain peak \n height";
 
+	//keep prompting until a valid value is found
 	while (terrainSize < gMinTerrainSize || terrainSize > gMaxTerrainSize)
 	{
 		cout << "\n\nPlease enter a valid terrain size \nto generate (50-300) -> ";
 		cin >> terrainSize;
 	}
-	terrainGenerator.setSize(terrainSize);
-	terrainGenerator.setupTerrain();
+	terrainGenerator.setSize(terrainSize); //tell the terrain generator how big to be 
+	terrainGenerator.setupTerrain(); //setup the terrain data structure
 	
 }
 
@@ -83,20 +105,17 @@ void promptUser()
 /* OpenGL Keyboard Callbacks */
 void keyboard(unsigned char key, int xIn, int yIn)
 {
-	//DELETE THIS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	vector<float> a = { 1, 1, 2 };
-	vector<float> b = { 2, 4, 2 };
 	switch (key)
 	{
+		//zoom
 	case '_':
-		gCamPos[2] += 10;
 	case '-':
-		gCamPos[2] += 10;
+			gCamPos[2] += 10;
 		break;
 	case '=':
-		gCamPos[2] -= 10;
 	case '+':
-		gCamPos[2] -= 10;
+		if (gCamPos[2] - 10 > 0)
+			gCamPos[2] -= 10;
 		break;
 	case 'w':
 		//toggle wireframe mode
@@ -116,7 +135,6 @@ void keyboard(unsigned char key, int xIn, int yIn)
 			terrainGenerator.setFillMode(TerrainGenerator::COMBINATION);
 			break;
 		}
-		
 		break;
 	case 'c':
 		//toggle color mode
@@ -169,6 +187,28 @@ void keyboard(unsigned char key, int xIn, int yIn)
 	case 'f':
 		glShadeModel(GL_FLAT);
 		break;
+	case 'g':
+		//toggle shading mode
+		if (gShadingMode == TerrainGenerator::FLAT)
+		{
+			gShadingMode = TerrainGenerator::GOURAUD;
+		}
+		else
+		{
+			gShadingMode = TerrainGenerator::FLAT;
+		}
+		
+		switch (gShadingMode)
+		{
+		case TerrainGenerator::FLAT:
+			terrainGenerator.setShadingMode(TerrainGenerator::FLAT);
+			break;
+		case TerrainGenerator::GOURAUD:
+			terrainGenerator.setShadingMode(TerrainGenerator::GOURAUD);
+			break;
+		}
+		break;
+	//quit
 	case 'q':
 	case 27:	//27 is the esc key
 		exit(0);
@@ -179,8 +219,8 @@ void keyboard(unsigned char key, int xIn, int yIn)
 void init(void)
 {
 	/* Setup GL features */
-	glEnable(GL_DEPTH_TEST);
-	glFrontFace(GL_CW);
+	glEnable(GL_DEPTH_TEST); //z buffer enable
+	glFrontFace(GL_CW); //tell openGL that the primitives render in CW ordering
 	glEnable(GL_CULL_FACE); //enable backface culling
 
 	glClearColor(0, 0, 0, 0);
@@ -191,7 +231,7 @@ void init(void)
 	gluPerspective(45, 1, 1, 400);
 
 	glShadeModel(GL_FLAT);
-	glEnable(GL_COLOR_MATERIAL);
+	glEnable(GL_COLOR_MATERIAL); //tell openGL what material colors to use 
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 }
 
@@ -221,6 +261,7 @@ void special(int key, int x, int y)
 			gSceneRotation[0] -= 1;
 		break;
 
+		/*the rest of the cases move the lights*/
 	case GLUT_KEY_F1:
 		light_pos[0] -= 10;
 		cout << endl << "Light 1 Position: " << light_pos[0] << " " << light_pos[1] << " " << light_pos[2];
@@ -293,11 +334,12 @@ void display1(void)
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_pos); //put the light in the correct position
 	glLightfv(GL_LIGHT1, GL_POSITION, light_pos2);
 
-
+	//tell the camera where to point and orient
 	gluLookAt(gCamPos[0], gCamPos[1], gCamPos[2], 0, 0, 0, 0, 1, 0);
+
 	glPushMatrix(); // push scene rotation
 	//rotate the scene by the amount specified by the user
 	glRotatef(gSceneRotation[0], 1, 0, 0);
@@ -315,6 +357,7 @@ void display1(void)
 	glutSwapBuffers();
 }
 
+/*OpenGL display function for the heightmap*/
 void display2(void)
 {
 	//the heightmap only gets drawn once per terrain made
@@ -332,7 +375,6 @@ void display2(void)
 
 		gluLookAt(0, 0, -1, 0, 0, 0, 0, 1, 0);
 		
-	
 		terrainGenerator.drawHeightMap(); //draw the heightmap
 		
 		glPopMatrix();
@@ -352,9 +394,10 @@ void idle(void)
 	glutPostRedisplay();
 }
 
+/*OpenGL mouse callback for the heightmap*/
 void mouse2(int button, int state, int x, int y)
 {
-	//calculate the indexes of the mountain array. the math correlates what is on screen to the array
+	//calculate the indexes of the mountain array. the math correlates what is on screen to the array position
 	int i = round((float) x / gWindow2SizeX * terrainGenerator.getTerrainSize());
 	int j = round((float)(gWindow2SizeY - y) / gWindow2SizeY * terrainGenerator.getTerrainSize());
 	
@@ -391,15 +434,17 @@ int main(int argc, char** argv)
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diff0);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, spec0);
 	glLightfv(GL_LIGHT1, GL_POSITION, light_pos2);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, amb02);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, diff02);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, spec02);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, amb1);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, diff1);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, spec1);
 
+	/*setup materials*/
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, m_amb);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, m_diff);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, m_spec);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shiny);
 
+	/*register callbacks*/
 	glutDisplayFunc(display1);	//registers "display1" as the display callback function
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(special);

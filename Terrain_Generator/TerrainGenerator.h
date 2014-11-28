@@ -10,6 +10,7 @@ public:
 	//types
 	enum FillMode { SOLID, WIREFRAME, COMBINATION };
 	enum ColorMode { GREYSCALE, COLOR }; 
+	enum ShadingMode { FLAT, GOURAUD };
 
 	//getters
 	vector<vector<float> > getTerrain(); //returns the data structure that holds the terrain
@@ -20,8 +21,9 @@ public:
 	//setters
 	void setSize(int terrainSize); //set the terrain size record
 	void setupTerrain(); //change the terrain data structure to hold a mountainous setup
-	void setFillMode(FillMode newMode);
-	void setColorMode(ColorMode newMode);
+	void setFillMode(FillMode newMode); //change the fill mode
+	void setColorMode(ColorMode newMode);//change the color mode
+	void setShadingMode(ShadingMode newMode); //change the shading mode
 	void incrementHeight(int x, int y); //takes the coordinates of the terrain to change the height
 	void decrementHeight(int x, int y); //takes the coordinates of the terrain to change the height
 
@@ -38,13 +40,14 @@ private:
 	float displacement; //the amount to displace pixels at a fault
 	int faultIterations; //the number of faults to make
 	vector<vector<float>> terrain; //the data structure holding the terrain setup
-	vector<vector<vector<float>>> normalList; //the data structure holding the normals
-	vector<vector<vector<float>>> normalVectorList; //the data structure holding the normals
+	vector<vector<vector<float>>> faceNormalList; //the data structure holding the face normals
+	vector<vector<vector<float>>> vertexNormalList; //the data structure holding the vertex normals
 	bool firstLoad; //true if it has loaded already. false if it hasnt been loaded for the first time yet
 	bool normalsDrawn; //whether the normals have been drawn
 
 	FillMode fillMode; //the wirefram mode to use 
 	ColorMode colorMode; //whether the colors are grey or colored
+	ShadingMode shadingMode; //the active shading type
 
 	//functions
 	void drawQuad(int i, int j); //draw a quad using the point specified

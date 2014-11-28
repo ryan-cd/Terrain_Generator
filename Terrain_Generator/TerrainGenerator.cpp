@@ -1,7 +1,7 @@
 #include "TerrainGenerator.h"
 
 
-//temporary variables
+//these vectors are used for the normal calculations 
 vector<float> vertexA(3);
 vector<float> vertexB(3);
 vector<float> vertexC(3);
@@ -44,7 +44,7 @@ void TerrainGenerator::drawScene(void)
 				drawQuad(i, j);
 		}
 	}
-	//cout << endl << this->normalList[0][0][0] << this->normalList[0][0][1] << this->normalList[0][0][2];
+	//cout << endl << this->faceNormalList[0][0][0] << this->faceNormalList[0][0][1] << this->faceNormalList[0][0][2];
 	firstLoad = true; //signify that the mountains loaded fully for a first time
 	normalsDrawn = true;
 }
@@ -93,7 +93,10 @@ void TerrainGenerator::drawQuad(int i, int j)
 		/* The quad is indexed clockwise like this
 		* A__B
 		* |  |
-		* D__C */
+		* D__C 
+		* each upper left vertex will hold the normal for its face.
+		* ie in the above diagram, the index corresponding with vertex
+		* A will hold the normal of that face */
 
 
 		//this conditional is only reached if the mode is combo
@@ -141,14 +144,57 @@ void TerrainGenerator::drawQuad(int i, int j)
 				((float)normalVectorA[1] + normalVectorB[1] + normalVectorC[1] + normalVectorD[1]) / 4,
 				((float)normalVectorA[2] + normalVectorB[2] + normalVectorC[2] + normalVectorD[2]) / 4 };
 
-			this->normalList[i][j] = tempVector;
+			this->faceNormalList[i][j] = tempVector;
+
+			//in this case there is enough information to calculate a vertex normal
+			if (i >= 1 && j >= 1)
+			{
+				//set the vertex normal
+				for (int q = 0; q < 3; q++)
+				{
+					this->vertexNormalList[i][j][q] = 
+						(float)(faceNormalList[i - 1][j - 1][q] +
+						faceNormalList[i][j - 1][q] +
+						faceNormalList[i][j][q] +
+						faceNormalList[i - 1][j][q]) / 4;
+
+					this->vertexNormalList[i+1][j][q] =
+						(float)(faceNormalList[i][j - 1][q] +
+						faceNormalList[i+1][j - 1][q] +
+						faceNormalList[i+1][j][q] +
+						faceNormalList[i][j][q]) / 4;
+
+					this->vertexNormalList[i + 1][j+1][q] =
+						(float)(faceNormalList[i][j][q] +
+						faceNormalList[i + 1][j][q] +
+						faceNormalList[i + 1][j+1][q] +
+						faceNormalList[i][j+1][q]) / 4;
+
+					this->vertexNormalList[i][j + 1][q] =
+						(float)(faceNormalList[i-1][j][q] +
+						faceNormalList[i][j][q] +
+						faceNormalList[i][j + 1][q] +
+						faceNormalList[i-1][j + 1][q]) / 4;
+				}
+			}
 		}
 		//set the normal of this set of points
-		glNormal3f(this->normalList[i][j][0], this->normalList[i][j][1], this->normalList[i][j][2]);
+		if (this->shadingMode == FLAT)
+		{
+			glNormal3f(this->faceNormalList[i][j][0],
+				this->faceNormalList[i][j][1],
+				this->faceNormalList[i][j][2]);
+		}
 		
 		
 		// DRAW VERTEX A //
-		
+		if (this->shadingMode == GOURAUD)
+		{
+			glNormal3f(this->vertexNormalList[i][j][0],
+				this->vertexNormalList[i][j][1],
+				this->vertexNormalList[i][j][2]);
+		}
+
 		if (z == 0)
 			setVertexColor((float)vertexA[1] / multiplier);
 		else
@@ -161,7 +207,12 @@ void TerrainGenerator::drawQuad(int i, int j)
 		
 
 		// DRAW VERTEX B //
-		
+		if (this->shadingMode == GOURAUD)
+		{
+			glNormal3f(this->vertexNormalList[i + 1][j][0], 
+				this->vertexNormalList[i + 1][j][1],
+				this->vertexNormalList[i + 1][j][2]);
+		}
 		if (z == 0)
 			setVertexColor((float)vertexB[1] / multiplier);
 		else
@@ -174,7 +225,12 @@ void TerrainGenerator::drawQuad(int i, int j)
 		
 
 		// DRAW VERTEX C //
-		
+		if (this->shadingMode == GOURAUD)
+		{
+			glNormal3f(this->vertexNormalList[i + 1][j + 1][0],
+				this->vertexNormalList[i + 1][j + 1][1],
+				this->vertexNormalList[i + 1][j + 1][2]);
+		}
 		if (z == 0)
 			setVertexColor((float)vertexC[1] / multiplier);
 		else
@@ -187,7 +243,13 @@ void TerrainGenerator::drawQuad(int i, int j)
 		
 
 		// DRAW VERTEX D //
-		
+		if (this->shadingMode == GOURAUD)
+		{
+			glNormal3f(this->vertexNormalList[i][j + 1][0],
+				this->vertexNormalList[i][j + 1][1],
+				this->vertexNormalList[i][j + 1][2]);
+		}
+
 		if (z == 0)
 			setVertexColor((float)vertexD[1] / multiplier);
 		else
@@ -257,13 +319,16 @@ void TerrainGenerator::setSize(int terrainSize)
 		this->terrainSize = terrainSize;
 		terrain.resize(terrainSize, vector<float>(terrainSize, 0));
 
-		normalList.resize(terrainSize);
+		faceNormalList.resize(terrainSize);
+		vertexNormalList.resize(terrainSize);
 		for (int i = 0; i < terrainSize; i++)
 		{
-			normalList[i].resize(terrainSize);
+			faceNormalList[i].resize(terrainSize);
+			vertexNormalList[i].resize(terrainSize);
 			for (int j = 0; j < terrainSize; j++)
 			{
-				normalList[i][j].resize(3);
+				faceNormalList[i][j].resize(3);
+				vertexNormalList[i][j].resize(3);
 			}
 		}
 	}
@@ -280,7 +345,7 @@ void TerrainGenerator::setupTerrain()
 	size = this->terrainSize;
 	d = sqrt(2 * (size*size));
 	
-	cout << "\r                "; // clear the console line
+	cout << "\r                                         "; // clear the console line
 	for (int iterations = 1; iterations <= this->faultIterations; iterations++)
 	{
 		v = rand();
@@ -321,6 +386,11 @@ void TerrainGenerator::setFillMode(FillMode newMode)
 void TerrainGenerator::setColorMode(ColorMode newMode)
 {
 	this->colorMode = newMode;
+}
+
+void TerrainGenerator::setShadingMode(ShadingMode newMode)
+{
+	this->shadingMode = newMode;
 }
 
 void TerrainGenerator::incrementHeight(int x, int y)
