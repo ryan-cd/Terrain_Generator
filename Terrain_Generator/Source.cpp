@@ -66,10 +66,10 @@ void promptUser()
 {
 	int terrainSize = 0;
 	
-	cout << "Welcome to Terrain Generator\n\n";
+	cout << "Welcome to Terrain Generator\n";
 
 	cout << "\nControls:"
-		<< "\n\nLEFT SCREEN:"
+		<< "\n|LEFT SCREEN:"
 		<< "\nArrow keys to rotate scene"
 		<< "\n+/- to zoom"
 		<< "\nc to toggle coloring"
@@ -86,9 +86,8 @@ void promptUser()
 		<< "\nF11/F12 to move light 2 along z axis"
 		<< "\nr to reset"
 		<< "\nq/esc to quit"
-		<< "\n\nRIGHT SCREEN:"
-		<< "\nLeft click on pixels to raise the \n corresponding mountain peak \n height at that point"
-		<< "\nRight click on pixels to lower the \n corresponding mountain peak \n height";
+		<< "\n|RIGHT SCREEN:"
+		<< "\nL/R click on points to adjust height";
 
 	//keep prompting until a valid value is found
 	while (terrainSize < gMinTerrainSize || terrainSize > gMaxTerrainSize)
@@ -230,7 +229,7 @@ void init(void)
 	glLoadIdentity();
 	gluPerspective(45, 1, 1, 400);
 
-	glShadeModel(GL_FLAT);
+	glShadeModel(GL_SMOOTH);
 	glEnable(GL_COLOR_MATERIAL); //tell openGL what material colors to use 
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 }

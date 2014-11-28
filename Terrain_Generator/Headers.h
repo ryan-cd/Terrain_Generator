@@ -8,6 +8,7 @@
 #include <time.h> //needed for random seed
 #include <iostream>
 #include <vector>
+#include <math.h>
 
 #ifdef __APPLE__
 #  include <OpenGL/gl.h>
@@ -19,7 +20,7 @@
 //#  include <GL/glu.h>
 //#  include <GL/freeglut.h>
 #include <GL/glut.h>
-#include <GL/GL.h>
+#include <GL/gl.h>
 
 #endif
 

@@ -29,11 +29,12 @@ TerrainGenerator::TerrainGenerator(void)
 	this->displacement = 0.02; // amount to increment or decrement a height
 	this->faultIterations = 800; //number of fault iterations to do
 	this->firstLoad = false; //whether the terrain has already been loaded once already
-	this->normalsDrawn = false;
+	this->normalsDrawn = false; //whether the normals have been drawn
 	this->fillMode = SOLID; //wireframe mode
 	this->colorMode = COLOR; //color/greyscale mode
 }
 
+/*will draw the terrain onto the screen*/
 void TerrainGenerator::drawScene(void)
 {
 	for (int i = 0; i < this->terrainSize; i++)
@@ -44,11 +45,12 @@ void TerrainGenerator::drawScene(void)
 				drawQuad(i, j);
 		}
 	}
-	//cout << endl << this->faceNormalList[0][0][0] << this->faceNormalList[0][0][1] << this->faceNormalList[0][0][2];
+	
 	firstLoad = true; //signify that the mountains loaded fully for a first time
-	normalsDrawn = true;
+	normalsDrawn = true; //signify that the normals have been set
 }
 
+/*will draw the heightmap onto the screen*/
 void TerrainGenerator::drawHeightMap(void)
 {
 	glBegin(GL_POINTS);
@@ -64,12 +66,13 @@ void TerrainGenerator::drawHeightMap(void)
 	glEnd();
 }
 
-
+/*will calculate normals and draw quads to the screen*/
 void TerrainGenerator::drawQuad(int i, int j)
 {
 	float multiplier = 30; //multiplier to affect the height value
 	float height = 0; //the height of the current vertex
-	int iterations = 1; //if the fill mode is combination
+	int iterations = 1; //how many times to draw the quad. (combination mode draws it twice)
+
 
 	if (this->fillMode == SOLID) 
 	{
@@ -88,6 +91,7 @@ void TerrainGenerator::drawQuad(int i, int j)
 	}
 	
 	//the for loop runs once usually. if its COMBINATION mode it runs twice
+	//once as GL_FILL, then again as GL_LINE
 	for (int z = 0; z < iterations; z++)
 	{
 		/* The quad is indexed clockwise like this
@@ -107,6 +111,7 @@ void TerrainGenerator::drawQuad(int i, int j)
 
 		glBegin(GL_QUADS);
 		
+		/*setup the 4 vertices for the quad*/
 		vertexA[0] = i; 
 		vertexA[1] = this->terrain[i][j] * multiplier; 
 		vertexA[2] = j;
@@ -123,8 +128,10 @@ void TerrainGenerator::drawQuad(int i, int j)
 		vertexD[1] = this->terrain[i][j+1] * multiplier; 
 		vertexD[2] = j + 1;
 		
+		//only calculate normals if they haven't been calculated already
 		if (!normalsDrawn)
 		{
+			/*setup the vectors between the adjacent vertexes*/
 			vectorAB = { vertexB[0] - vertexA[0], vertexB[1] - vertexA[1], vertexB[2] - vertexA[2] };
 			vectorBC = { vertexC[0] - vertexB[0], vertexC[1] - vertexB[1], vertexC[2] - vertexB[2] };
 			vectorCD = { vertexD[0] - vertexC[0], vertexD[1] - vertexC[1], vertexD[2] - vertexC[2] };
@@ -134,22 +141,25 @@ void TerrainGenerator::drawQuad(int i, int j)
 			vectorCB = { vertexB[0] - vertexC[0], vertexB[1] - vertexC[1], vertexB[2] - vertexC[2] };
 			vectorDC = { vertexC[0] - vertexD[0], vertexC[1] - vertexD[1], vertexC[2] - vertexD[2] };
 			vectorAD = { vertexA[0] - vertexD[0], vertexA[1] - vertexD[1], vertexA[2] - vertexD[2] };
-		
+			
+			//calculate the 4 normals
 			normalVectorA = normal(vectorAB, vectorAD);
 			normalVectorB = normal(vectorBA, vectorBC);
 			normalVectorC = normal(vectorCB, vectorCD);
 			normalVectorD = normal(vectorDC, vectorDA);
 			
+			//store the 4 normals averaged
 			tempVector = { ((float)normalVectorA[0] + normalVectorB[0] + normalVectorC[0] + normalVectorD[0]) / 4,
 				((float)normalVectorA[1] + normalVectorB[1] + normalVectorC[1] + normalVectorD[1]) / 4,
 				((float)normalVectorA[2] + normalVectorB[2] + normalVectorC[2] + normalVectorD[2]) / 4 };
 
+			//save the average normal into the data structure
 			this->faceNormalList[i][j] = tempVector;
 
 			//in this case there is enough information to calculate a vertex normal
 			if (i >= 1 && j >= 1)
 			{
-				//set the vertex normal
+				//save the vertex normals for all 4 vertices
 				for (int q = 0; q < 3; q++)
 				{
 					this->vertexNormalList[i][j][q] = 
@@ -178,6 +188,7 @@ void TerrainGenerator::drawQuad(int i, int j)
 				}
 			}
 		}
+
 		//set the normal of this set of points
 		if (this->shadingMode == FLAT)
 		{
@@ -188,6 +199,8 @@ void TerrainGenerator::drawQuad(int i, int j)
 		
 		
 		// DRAW VERTEX A //
+
+		//if the shading mode is GOURAUD fetch a saved normal from its vector
 		if (this->shadingMode == GOURAUD)
 		{
 			glNormal3f(this->vertexNormalList[i][j][0],
@@ -195,6 +208,8 @@ void TerrainGenerator::drawQuad(int i, int j)
 				this->vertexNormalList[i][j][2]);
 		}
 
+		//if we are on the first iteration, set the color with the height value
+		//otherwise set the color with the inverse of the height value
 		if (z == 0)
 			setVertexColor((float)vertexA[1] / multiplier);
 		else
@@ -203,6 +218,7 @@ void TerrainGenerator::drawQuad(int i, int j)
 				1 - (float)vertexA[1] / multiplier,
 				1 - (float)vertexA[1] / multiplier);
 		}
+		//draw the vertex
 		glVertex3f(vertexA[0], vertexA[1], vertexA[2]);
 		
 
@@ -266,11 +282,15 @@ void TerrainGenerator::drawQuad(int i, int j)
 }
 
 /* Private function 
-Sets the GLColor call*/
+Sets the GLColor3f call
+it takes some calculations to get the blending right.
+It considers the percentage the height is in between each quarter of the max height
+to determine how strong that zone's color should be*/
 void TerrainGenerator::setVertexColor(float height)
 {
 	float color[3] = { 0, 0, 0 }; // the color to set the vertex if it is color mode
 
+	//if the colorMode is greyscale, the height is the color. Otherwise calculations are needed
 	if (colorMode == GREYSCALE) 
 		glColor3f(height, height, height);
 	else if (colorMode == COLOR)
@@ -312,9 +332,10 @@ void TerrainGenerator::setVertexColor(float height)
 
 //setters
 
+/*This function tells this class how big to make the terrain and normal vectors size*/
 void TerrainGenerator::setSize(int terrainSize)
 {
-
+	//initialize the vectors storing terrain and normals
 	if (terrainSize >= 0){
 		this->terrainSize = terrainSize;
 		terrain.resize(terrainSize, vector<float>(terrainSize, 0));
@@ -428,7 +449,6 @@ int TerrainGenerator::getTerrainSize(void)
 /* inputs two 3d vectors returns the normalized normal */
 vector<float> TerrainGenerator::normal(vector<float> a, vector<float> b)
 {
-	//add input checking
 	vector<float> result(3);
 	float magnitude;
 	result[0] = (float)a[1] * b[2] - a[2] * b[1];
@@ -438,8 +458,6 @@ vector<float> TerrainGenerator::normal(vector<float> a, vector<float> b)
 
 	for (int i = 0; i <= 2; i++)
 		result[i] /= magnitude;
-	
-	//cout << "\n" << result[0] << " " << result[1] << " " << result[2];
 
 	return result;
 }

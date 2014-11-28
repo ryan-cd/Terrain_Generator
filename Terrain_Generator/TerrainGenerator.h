@@ -39,9 +39,9 @@ private:
 	int terrainSize; //the internal store of the width of the terrain
 	float displacement; //the amount to displace pixels at a fault
 	int faultIterations; //the number of faults to make
-	vector<vector<float>> terrain; //the data structure holding the terrain setup
-	vector<vector<vector<float>>> faceNormalList; //the data structure holding the face normals
-	vector<vector<vector<float>>> vertexNormalList; //the data structure holding the vertex normals
+	vector<vector<float> > terrain; //the data structure holding the terrain setup
+	vector<vector<vector<float> > > faceNormalList; //the data structure holding the face normals
+	vector<vector<vector<float> > > vertexNormalList; //the data structure holding the vertex normals
 	bool firstLoad; //true if it has loaded already. false if it hasnt been loaded for the first time yet
 	bool normalsDrawn; //whether the normals have been drawn
 
