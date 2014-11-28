@@ -12,7 +12,7 @@ float gMinSceneRotationX = 0, gMaxSceneRotationX = 90;
 int gMinTerrainSize = 10, gMaxTerrainSize = 300;
 unsigned int gFillMode = 0; //this is used in the code to toggle drawing modes
 unsigned int gColorMode = 0; //this is used in the code to toggle fill mode
-bool lighting = true; //whether the lights are on
+unsigned int gLightingMode = 0; //whether 0, 1, or both lights are on
 bool gHeightmapDrawn = false; //whether the heightmap has been drawn already
 
 
@@ -24,9 +24,9 @@ int gWindow1 = 0, gWindow2 = 0; //specifies id of which window to work with
 //lighting
 float light_pos[] = { -100, -110, 0, 1.0 };
 
-float amb0[4] = { 1, 1, 1, 1 };
+float amb0[4] = { 0, 0, 1, 1 };
 float diff0[4] = { 1, 1, 1, 1 };
-float spec0[4] = { 1, 1, 1, 1 };
+float spec0[4] = { 0, 0, 1, 1 };
 
 float m_amb[] = { 0.1, 0.1, 0.1, 1.0 };
 float m_diff[] = { 1, 1, 1, 1.0 };
@@ -36,9 +36,9 @@ float shiny = 0.8f;
 //lighting 2
 float light_pos2[] = { 100, 0, 0, 1.0 };
 
-float amb02[4] = { 1, 0, 0, 1 };
-float diff02[4] = { 1, 0, 0, 1 };
-float spec02[4] = { 1, 0, 0, 1 };
+float amb02[4] = { 1, 0.3, 0.3, 1 };
+float diff02[4] = { 1, 0.3, 0.3, 1 };
+float spec02[4] = { 1, 0.3, 0.3, 1 };
 
 //Class instantiations
 TerrainGenerator terrainGenerator;
@@ -56,6 +56,13 @@ void promptUser()
 		<< "\n+/- to zoom"
 		<< "\nc to toggle coloring"
 		<< "\nw to toggle wireframe mode"
+		<< "\nl to toggle which lights to have on"
+		<< "\nF1/F2 to move light 1 along x axis"
+		<< "\nF3/F4 to move light 1 along y axis"
+		<< "\nF5/F6 to move light 1 along z axis"
+		<< "\nF7/F8 to move light 2 along x axis"
+		<< "\nF9/F10 to move light 2 along y axis"
+		<< "\nF11/F12 to move light 2 along z axis"
 		<< "\nr to reset"
 		<< "\nq/esc to quit"
 		<< "\n\nRIGHT SCREEN:"
@@ -132,14 +139,28 @@ void keyboard(unsigned char key, int xIn, int yIn)
 		break;
 	case 'l':
 		/* Toggle lighting */
-		lighting = lighting ? false : true;
-		if (lighting)
+		gLightingMode++;
+		if (gLightingMode > 3)
+			gLightingMode = 0;
+
+		switch (gLightingMode)
 		{
-			glEnable(GL_LIGHT0);
-		}
-		else 
-		{
+		case 0:
 			glDisable(GL_LIGHT0);
+			glDisable(GL_LIGHT1);
+			break;
+		case 1:
+			glEnable(GL_LIGHT0);
+			glDisable(GL_LIGHT1);
+			break;
+		case 2:
+			glDisable(GL_LIGHT0);
+			glEnable(GL_LIGHT1);
+			break;
+		case 3:
+			glEnable(GL_LIGHT0);
+			glEnable(GL_LIGHT1);
+			break;
 		}
 		break;
 	case 's':
@@ -275,6 +296,7 @@ void display1(void)
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 	glLightfv(GL_LIGHT1, GL_POSITION, light_pos2);
 
+
 	gluLookAt(gCamPos[0], gCamPos[1], gCamPos[2], 0, 0, 0, 0, 1, 0);
 	glPushMatrix(); // push scene rotation
 	//rotate the scene by the amount specified by the user
@@ -361,8 +383,8 @@ int main(int argc, char** argv)
 	
 	/* lighting setup */
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHT0);
+	//glEnable(GL_LIGHT1);
 
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, amb0);

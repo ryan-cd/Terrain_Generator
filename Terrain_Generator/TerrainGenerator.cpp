@@ -87,7 +87,7 @@ void TerrainGenerator::drawQuad(int i, int j)
 		iterations = 2;
 	}
 	
-
+	//the for loop runs once usually. if its COMBINATION mode it runs twice
 	for (int z = 0; z < iterations; z++)
 	{
 		/* The quad is indexed clockwise like this
@@ -96,9 +96,7 @@ void TerrainGenerator::drawQuad(int i, int j)
 		* D__C */
 
 
-
-
-		//this will only be reached if the mode is combo
+		//this conditional is only reached if the mode is combo
 		if (z == 1)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -271,7 +269,7 @@ void TerrainGenerator::setSize(int terrainSize)
 	}
 }
 
-/*This function sets up the terrain hights
+/*This function sets up the terrain heights
 it is implemented from the psuedocode on this page
 linked to from the assignment: 
 http://www.lighthouse3d.com/opengl/terrain/index.php?impdetails

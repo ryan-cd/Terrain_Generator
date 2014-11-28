@@ -39,6 +39,7 @@ private:
 	int faultIterations; //the number of faults to make
 	vector<vector<float>> terrain; //the data structure holding the terrain setup
 	vector<vector<vector<float>>> normalList; //the data structure holding the normals
+	vector<vector<vector<float>>> normalVectorList; //the data structure holding the normals
 	bool firstLoad; //true if it has loaded already. false if it hasnt been loaded for the first time yet
 	bool normalsDrawn; //whether the normals have been drawn
 
